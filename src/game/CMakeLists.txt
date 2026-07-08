@@ -1,0 +1,11 @@
+add_library(game STATIC
+    Game.cpp
+)
+
+target_include_directories(game PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(game PUBLIC core engine SDL3::SDL3 SDL3_image::SDL3_image)
+
+target_compile_features(game PUBLIC cxx_std_17)

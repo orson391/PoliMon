@@ -1,0 +1,16 @@
+{
+  "cmake.cmake.command": "C:\\cmake-portable\\cmake-3.29.2-windows-x86_64\\bin\\cmake.exe",
+  "cmake.generator": "Ninja Multi-Config",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "xaver.clang-format",
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "files.trimTrailingWhitespace": true,
+  "C_Cpp.clang_format_style": "file",
+  "C_Cpp.formatting": "clangFormat",
+  "C_Cpp.clang_format_fallbackStyle": "Google",
+  "[cpp]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools"
+  }
+}
