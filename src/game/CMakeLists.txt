@@ -1,5 +1,6 @@
 add_library(game STATIC
     Game.cpp
+    entities/Player.cpp
 )
 
 target_include_directories(game PUBLIC
