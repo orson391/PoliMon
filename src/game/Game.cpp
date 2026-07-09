@@ -91,7 +91,7 @@ void GameApp::onRender(SDL_Renderer* renderer) {
       break;
 
     case Direction::Left:
-      row = 1;
+      row = 3;
       break;
 
     case Direction::Right:
@@ -99,7 +99,7 @@ void GameApp::onRender(SDL_Renderer* renderer) {
       break;
 
     case Direction::Up:
-      row = 3;
+      row = 1;
       break;
   }
 
@@ -116,7 +116,8 @@ void GameApp::onRender(SDL_Renderer* renderer) {
                 static_cast<float>(frameHeight)};
 
   // Draw player scaled to 32x32.
-  SDL_FRect dst{playerX_, playerY_, 32.0f, 32.0f};
+  // SDL_FRect dst{playerX_, playerY_, 32.0f, 32.0f};
+  SDL_FRect dst{playerX_, playerY_, 64.0f, 64.0f};
 
   SDL_RenderTexture(renderer, playerTexture_.get(), &src, &dst);
 }
