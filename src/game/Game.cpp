@@ -35,11 +35,40 @@ void GameApp::onUpdate(float dtSeconds) {
     playerY_ += playerSpeed_ * dtSeconds;
     playerDirection_ = Direction::Down;
   }
+
+  auto& elem = rectangles_.at(4);
+  RGB color = getRGBFromRectPosition(playerX_, playerY_, elem.x, elem.y, elem.width, elem.height);
+  elem.r = color.r;
+  elem.g = color.g;
+  elem.b = color.b;
+  elem.a = 255;
 }
 
 void GameApp::onRender(SDL_Renderer* renderer) {
   if (!renderer) {
     return;
+  }
+  for (const auto& pair : rectangles_) {
+    float scaleX = 0, scaleY = 0;
+    if (pair.second.normalized) {
+      scaleX = static_cast<float>(width_);
+      scaleY = static_cast<float>(height_);
+    } else {
+      scaleX = 1.0f;
+      scaleY = 1.0f;
+    }
+
+    SDL_FRect rect{pair.second.x * scaleX, pair.second.y * scaleY, pair.second.width * scaleX,
+                   pair.second.height * scaleY};
+
+    SDL_SetRenderDrawColorFloat(renderer, pair.second.r / 255, pair.second.g / 255,
+                                pair.second.b / 255, pair.second.a / 255);
+
+    if (pair.second.filled) {
+      SDL_RenderFillRect(renderer, &rect);
+    } else {
+      SDL_RenderRect(renderer, &rect);
+    }
   }
 
   int imageWidth = 67, imageHeight = 67;
@@ -48,33 +77,43 @@ void GameApp::onRender(SDL_Renderer* renderer) {
 
   int layerOne = 0, layerTwo = 0;
 
-  playerTexture_ = nullptr;
+  // Lazily load the sprite sheet exactly once and reuse it for the lifetime
+  // of the GameApp. (Previously this pointer was force-reset to nullptr at
+  // the top of every call, which discarded the existing SDL_Texture without
+  // destroying it and then re-decoded the PNG from disk on every single
+  // frame -- an unbounded, uncapped leak of GPU-backed texture memory that
+  // is the primary cause of the reported memory growth.)
   if (!playerTexture_) {
-    playerTexture_ =
+    SDL_Texture* loadedTexture =
         IMG_LoadTexture(renderer, "C:\\Projects\\VsCode\\PoliMon\\build\\asset\\Player.png");
-    if (!playerTexture_) {
+    if (!loadedTexture) {
       core::Logger::log("Failed to load player sprite: " + std::string(SDL_GetError()));
       return;
     }
+    playerTexture_.reset(loadedTexture);
   }
 
   int frameIndex = 0;
+  int leftAndRightPositiveOffset = 4;
+  bool isLeftOrRight = false;
   switch (playerDirection_) {
     case Direction::Up:
       layerOne = 0;
-      layerTwo = 0;
+      layerTwo = 1;
       break;
     case Direction::Down:
       layerOne = 0;
-      layerTwo = 1;
+      layerTwo = 0;
       break;
     case Direction::Left:
       layerOne = 0;
-      layerTwo = 2;
+      layerTwo = 3;
+      isLeftOrRight = true;
       break;
     case Direction::Right:
       layerOne = 0;
-      layerTwo = 3;
+      layerTwo = 2;
+      isLeftOrRight = true;
       break;
   }
 
@@ -83,11 +122,12 @@ void GameApp::onRender(SDL_Renderer* renderer) {
     layerOne = frameIndex;
   }
 
+  int finalOffset = isLeftOrRight ? leftAndRightPositiveOffset : 0;
   SDL_FRect src{static_cast<float>(layerOne * frameWidth),
-                static_cast<float>(layerTwo * frameHeight), static_cast<float>(frameWidth),
-                static_cast<float>(frameHeight)};
+                static_cast<float>(layerTwo * frameHeight + finalOffset),
+                static_cast<float>(frameWidth), static_cast<float>(frameHeight)};
   SDL_FRect dst{playerX_, playerY_, 32.0f, 32.0f};
-  SDL_RenderTexture(renderer, playerTexture_, &src, &dst);
+  SDL_RenderTexture(renderer, playerTexture_.get(), &src, &dst);
 }
 
 void GameApp::onClose() {
@@ -97,6 +137,53 @@ void GameApp::onClose() {
 void GameApp::onConfigReload(const core::Config& newConfig) {
   core::Logger::log("Config reloaded: title='" + newConfig.title + "' size=" +
                     std::to_string(newConfig.width) + "x" + std::to_string(newConfig.height));
+}
+
+float GameApp::hueToRGB(float p, float q, float t) {
+  if (t < 0.0f) t += 1.0f;
+  if (t > 1.0f) t -= 1.0f;
+  if (t < 1.0f / 6.0f) return p + (q - p) * 6.0f * t;
+  if (t < 1.0f / 2.0f) return q;
+  if (t < 2.0f / 3.0f) return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
+  return p;
+}
+
+RGB GameApp::getRGBFromRectPosition(float posX, float posY, float rectX, float rectY, float rectW,
+                                    float rectH) {
+  float centerX = rectX + (rectW / 2.0f);
+  float centerY = rectY + (rectH / 2.0f);
+
+  float maxRadius = std::min(rectW, rectH) / 2.0f;
+
+  float dx = posX - centerX;
+  float dy = posY - centerY;
+
+  float radius = std::sqrt(dx * dx + dy * dy);
+
+  float hue = std::atan2(dy, dx) * (180.0f / 3.1415f);
+  if (hue < 0.0f) {
+    hue += 360.0f;
+  }
+
+  float h = hue / 360.0f;
+  float s = std::min(radius / maxRadius, 1.0f);  // Cap saturation at 100% outer rim
+  float l = 0.5f;                                // 50% lightness yields rich, true hues
+
+  float r = 0.0f, g = 0.0f, b = 0.0f;
+
+  if (s == 0.0f) {
+    r = g = b = l;  // Absolute center outputs neutral white/gray
+  } else {
+    float q = (l < 0.5f) ? (l * (1.0f + s)) : (l + s - l * s);
+    float p = 2.0f * l - q;
+
+    r = hueToRGB(p, q, h + 1.0f / 3.0f);
+    g = hueToRGB(p, q, h);
+    b = hueToRGB(p, q, h - 1.0f / 3.0f);
+  }
+
+  return {static_cast<int>(std::round(r * 255.0f)), static_cast<int>(std::round(g * 255.0f)),
+          static_cast<int>(std::round(b * 255.0f))};
 }
 
 }  // namespace game

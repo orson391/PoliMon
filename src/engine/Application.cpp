@@ -28,13 +28,30 @@ bool loadConfigFromXml(const std::string& path, core::Config& outConfig) {
   outConfig.fullscreen = xmlConfig.window.fullscreen != 0;
   outConfig.target_fps = xmlConfig.graphics.target_fps;
   outConfig.vsync = xmlConfig.graphics.vsync != 0;
+  int numberOfRectangle = xmlConfig.rect_count;
+  for (int i = 0; i < numberOfRectangle; i++) {
+    XmlReaderRect xmlRect = xmlConfig.rects[i];
+    core::RectElement rect;
+    rect.id = xmlRect.id;
+    rect.x = xmlRect.x;
+    rect.y = xmlRect.y;
+    rect.width = xmlRect.width;
+    rect.height = xmlRect.height;
+    rect.r = xmlRect.r;
+    rect.g = xmlRect.g;
+    rect.b = xmlRect.b;
+    rect.a = xmlRect.a;
+    rect.filled = xmlRect.filled == 1;
+    rect.normalized = xmlRect.normalized == 1;
+    outConfig.rectangles.push_back(rect);
+  }
   return true;
 }
 
 }  // namespace
 
 Application::Application(const std::string& title, int width, int height)
-    : config_{}, configPath_{resolveConfigPath()} {
+    : config_{}, configPath_{resolveConfigPath()}, rectangles_(128) {
   config_.title = title;
   config_.width = width;
   config_.height = height;
@@ -75,6 +92,9 @@ bool Application::initialize() {
     return false;
   }
 
+  width_ = config_.width;
+  height_ = config_.height;
+
   renderer_ = SDL_CreateRenderer(window_, nullptr);
   if (!renderer_) {
     core::Logger::log("Renderer creation failed: " + std::string(SDL_GetError()));
@@ -82,6 +102,10 @@ bool Application::initialize() {
     window_ = nullptr;
     SDL_Quit();
     return false;
+  }
+
+  for (const auto& rect : config_.rectangles) {
+    rectangles_[rect.id] = rect;
   }
 
   running_ = true;
@@ -123,6 +147,19 @@ bool Application::reloadConfigFromFile(const std::string& path) {
     SDL_SetWindowTitle(window_, config_.title.c_str());
     SDL_SetWindowSize(window_, config_.width, config_.height);
     SDL_SetWindowFullscreen(window_, config_.fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+
+    width_ = config_.width;
+    height_ = config_.height;
+  }
+
+  // Rebuild rectangles_ from scratch on every successful reload. Previously
+  // this only overwrote/inserted entries for ids present in the new config,
+  // so any rectangle removed from settings.xml between reloads stayed
+  // resident in the map forever (a slow, config-driven leak of small POD
+  // entries, and a source of stale rectangles being rendered).
+  rectangles_.clear();
+  for (const auto& rect : config_.rectangles) {
+    rectangles_[rect.id] = rect;
   }
 
   onConfigReload(config_);
@@ -148,6 +185,13 @@ void Application::run() {
     onRender(renderer_);
     SDL_RenderPresent(renderer_);
   }
+
+  // onClose() was previously declared/overridden (GameApp logs "Game
+  // closed") but never actually invoked anywhere, so subclass shutdown
+  // hooks never ran. This is the natural place for it: once the loop exits
+  // but before the Application (and its window/renderer) start tearing
+  // down in ~Application().
+  onClose();
 }
 
 void Application::onStart() {}
@@ -157,15 +201,36 @@ void Application::onClear() {}
 void Application::onInput() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
-    if (event.type == SDL_EVENT_QUIT) {
-      running_ = false;
+    switch (event.type) {
+      case SDL_EVENT_QUIT:
+        running_ = false;
+        break;
+
+      case SDL_EVENT_WINDOW_RESIZED: {
+        int newWidth = event.window.data1;
+        int newHeight = event.window.data2;
+        width_ = newWidth;
+        height_ = newHeight;
+        break;
+      }
+
+      default:
+        break;
     }
   }
 }
 
 void Application::onUpdate(float dtSeconds) {
-  (void)dtSeconds;
-  reloadConfigFromFile();
+  // Polling the filesystem (exists() + last_write_time()) on every single
+  // frame is an unnecessary syscall per frame (hundreds/thousands per
+  // second). It isn't a memory leak by itself, but it fights the "zero
+  // unnecessary work per frame" goal and adds avoidable frame-time jitter,
+  // so throttle it to a fixed wall-clock interval instead.
+  configCheckAccumulatorSeconds_ += dtSeconds;
+  if (configCheckAccumulatorSeconds_ >= kConfigCheckIntervalSeconds) {
+    configCheckAccumulatorSeconds_ = 0.0f;
+    reloadConfigFromFile();
+  }
 }
 
 void Application::onRender(SDL_Renderer* renderer) {

@@ -64,6 +64,28 @@ bool Config::loadFromFile(const std::string& path, Config& outConfig) {
   config.target_fps = attrInt(graphicsElem, "target_fps", config.target_fps);
   config.vsync = attrBool(graphicsElem, "vsync", config.vsync);
 
+  tinyxml2::XMLElement* uiElem = root->FirstChildElement("UI");
+  if (uiElem) {
+    int index = 0;
+    for (auto* rectElem = uiElem->FirstChildElement("Rectangle"); rectElem;
+         rectElem = rectElem->NextSiblingElement("Rectangle")) {
+      RectElement rect;
+      rect.id = attrInt(rectElem, "id", index);
+      rect.x = attrFloat(rectElem, "x", 0.0f);
+      rect.y = attrFloat(rectElem, "y", 0.0f);
+      rect.width = attrFloat(rectElem, "width", 0.0f);
+      rect.height = attrFloat(rectElem, "height", 0.0f);
+      rect.r = static_cast<unsigned char>(attrInt(rectElem, "r", 255));
+      rect.g = static_cast<unsigned char>(attrInt(rectElem, "g", 255));
+      rect.b = static_cast<unsigned char>(attrInt(rectElem, "b", 255));
+      rect.a = static_cast<unsigned char>(attrInt(rectElem, "a", 255));
+      rect.filled = attrBool(rectElem, "filled", true);
+      rect.normalized = attrBool(rectElem, "normalized", false);
+      config.rectangles.push_back(rect);
+      index++;
+    }
+  }
+
   outConfig = config;
   return true;
 }

@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Settings>
-    <Window title="Niggesh Game app" width="330" height="600" fullscreen="false"/>
-    <Graphics target_fps="60" vsync="false"/>
+    <Window title="Anas" width="1000" height="500" fullscreen="false"/>
+    <Graphics target_fps="60" vsync="true"/>
+    <UI>
+      <Rectangle x="10" y="20" width="100" height="100" g="0" b="0" />
+      <Rectangle x="120" y="20" width="100" height="100" r="0" b="0"/>
+      <Rectangle x="230" y="20" width="100" height="100" r="0" g="0" />
+      <Rectangle x="10" y="130" width="100" height="100" r="0" g="0"/>
+      <Rectangle x="0.8" y="0.8" width="0.1" height="0.1" normalized="true"/>
+      <Rectangle x="0.1" y="0.8" width="0.1" height="0.1" normalized="true"/>
+    </UI>
 </Settings>

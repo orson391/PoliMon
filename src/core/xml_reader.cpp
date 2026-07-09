@@ -40,6 +40,27 @@ extern "C" int xml_reader_load_from_file(const char* path, XmlReaderConfig* out_
   out_config->window.fullscreen = config.fullscreen ? 1 : 0;
   out_config->graphics.target_fps = config.target_fps;
   out_config->graphics.vsync = config.vsync ? 1 : 0;
+
+  const int rectCount =
+      std::min<int>(static_cast<int>(config.rectangles.size()), XML_READER_MAX_RECTS);
+
+  for (int i = 0; i < rectCount; ++i) {
+    const core::RectElement& src = config.rectangles[static_cast<size_t>(i)];
+    XmlReaderRect& dst = out_config->rects[i];
+    dst.id = src.id;
+    dst.x = src.x;
+    dst.y = src.y;
+    dst.width = src.width;
+    dst.height = src.height;
+    dst.r = src.r;
+    dst.g = src.g;
+    dst.b = src.b;
+    dst.a = src.a;
+    dst.filled = src.filled ? 1 : 0;
+    dst.normalized = src.normalized ? 1 : 0;
+  }
+  out_config->rect_count = rectCount;
+
   return 1;
 }
 
