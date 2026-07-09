@@ -48,21 +48,16 @@ void GameApp::onRender(SDL_Renderer* renderer) {
   if (!renderer) {
     return;
   }
+
   for (const auto& pair : rectangles_) {
-    float scaleX = 0, scaleY = 0;
-    if (pair.second.normalized) {
-      scaleX = static_cast<float>(width_);
-      scaleY = static_cast<float>(height_);
-    } else {
-      scaleX = 1.0f;
-      scaleY = 1.0f;
-    }
+    float scaleX = pair.second.normalized ? static_cast<float>(width_) : 1.0f;
+    float scaleY = pair.second.normalized ? static_cast<float>(height_) : 1.0f;
 
     SDL_FRect rect{pair.second.x * scaleX, pair.second.y * scaleY, pair.second.width * scaleX,
                    pair.second.height * scaleY};
 
-    SDL_SetRenderDrawColorFloat(renderer, pair.second.r / 255, pair.second.g / 255,
-                                pair.second.b / 255, pair.second.a / 255);
+    SDL_SetRenderDrawColorFloat(renderer, pair.second.r / 255.0f, pair.second.g / 255.0f,
+                                pair.second.b / 255.0f, pair.second.a / 255.0f);
 
     if (pair.second.filled) {
       SDL_RenderFillRect(renderer, &rect);
@@ -71,65 +66,60 @@ void GameApp::onRender(SDL_Renderer* renderer) {
     }
   }
 
-  int imageWidth = 67, imageHeight = 67;
-  int frameWidth = imageWidth / 4;
-  int frameHeight = imageHeight / 4;
+  constexpr int frameWidth = 16;
+  constexpr int frameHeight = 16;
+  constexpr int spacing = 1;
 
-  int layerOne = 0, layerTwo = 0;
-
-  // Lazily load the sprite sheet exactly once and reuse it for the lifetime
-  // of the GameApp. (Previously this pointer was force-reset to nullptr at
-  // the top of every call, which discarded the existing SDL_Texture without
-  // destroying it and then re-decoded the PNG from disk on every single
-  // frame -- an unbounded, uncapped leak of GPU-backed texture memory that
-  // is the primary cause of the reported memory growth.)
+  // Load sprite sheet once.
   if (!playerTexture_) {
     SDL_Texture* loadedTexture =
         IMG_LoadTexture(renderer, "C:\\Projects\\VsCode\\PoliMon\\build\\asset\\Player.png");
+
     if (!loadedTexture) {
       core::Logger::log("Failed to load player sprite: " + std::string(SDL_GetError()));
       return;
     }
+
     playerTexture_.reset(loadedTexture);
   }
 
-  int frameIndex = 0;
-  int leftAndRightPositiveOffset = 4;
-  bool isLeftOrRight = false;
+  // Determine sprite sheet row based on direction.
+  int row = 0;
   switch (playerDirection_) {
-    case Direction::Up:
-      layerOne = 0;
-      layerTwo = 1;
-      break;
     case Direction::Down:
-      layerOne = 0;
-      layerTwo = 0;
+      row = 0;
       break;
+
     case Direction::Left:
-      layerOne = 0;
-      layerTwo = 3;
-      isLeftOrRight = true;
+      row = 1;
       break;
+
     case Direction::Right:
-      layerOne = 0;
-      layerTwo = 2;
-      isLeftOrRight = true;
+      row = 2;
+      break;
+
+    case Direction::Up:
+      row = 3;
       break;
   }
+
+  // Animation frame (column).
+  int column = 0;
 
   if (isMoving_) {
-    frameIndex = static_cast<int>(SDL_GetTicks() / 100) % 4;  // Change frame every 100 ms
-    layerOne = frameIndex;
+    column = (SDL_GetTicks() / 100) % 4;  // Change frame every 100 ms.
   }
 
-  int finalOffset = isLeftOrRight ? leftAndRightPositiveOffset : 0;
-  SDL_FRect src{static_cast<float>(layerOne * frameWidth),
-                static_cast<float>(layerTwo * frameHeight + finalOffset),
-                static_cast<float>(frameWidth), static_cast<float>(frameHeight)};
+  // Skip the 1-pixel spacing between sprites.
+  SDL_FRect src{static_cast<float>(column * (frameWidth + spacing)),
+                static_cast<float>(row * (frameHeight + spacing)), static_cast<float>(frameWidth),
+                static_cast<float>(frameHeight)};
+
+  // Draw player scaled to 32x32.
   SDL_FRect dst{playerX_, playerY_, 32.0f, 32.0f};
+
   SDL_RenderTexture(renderer, playerTexture_.get(), &src, &dst);
 }
-
 void GameApp::onClose() {
   core::Logger::log("Game closed");
 }
