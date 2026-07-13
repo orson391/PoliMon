@@ -4,6 +4,7 @@
 
 #include "Application.h"
 #include "entities/Player.h"
+#include "world/world.h"
 
 namespace game {
 
@@ -26,6 +27,7 @@ class GameApp : public engine::Application {
 
  private:
   entities::Player player_;
+  world::World world_;
 };
 
 }  // namespace game

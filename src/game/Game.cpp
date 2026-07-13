@@ -11,6 +11,10 @@ GameApp::GameApp() {
 void GameApp::onStart() {
   core::Logger::log("Game started");
 
+  if (!world_.load(renderer())) {
+    core::Logger::log("Failed to load world.");
+  }
+
   if (!player_.load(renderer())) {
     core::Logger::log("Failed to load player.");
   }
@@ -19,6 +23,7 @@ void GameApp::onStart() {
 void GameApp::onUpdate(float dtSeconds) {
   Application::onUpdate(dtSeconds);
 
+  world_.update(dtSeconds);
   player_.update(dtSeconds);
 }
 
@@ -26,7 +31,7 @@ void GameApp::onRender(SDL_Renderer* renderer) {
   if (!renderer) {
     return;
   }
-
+  world_.render(renderer);
   player_.render(renderer);
 }
 
