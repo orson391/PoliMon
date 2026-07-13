@@ -1,5 +1,6 @@
 add_library(engine STATIC
     Application.cpp
+    ui/ui_element.cpp
 )
 
 target_include_directories(engine PUBLIC
