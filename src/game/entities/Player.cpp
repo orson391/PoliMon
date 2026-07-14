@@ -88,7 +88,7 @@ void Player::render(SDL_Renderer* renderer) {
                 static_cast<float>(row * (frameHeight + spacing)), static_cast<float>(frameWidth),
                 static_cast<float>(frameHeight)};
 
-  SDL_FRect dst{x_, y_, 64.0f, 64.0f};
+  SDL_FRect dst{x_, y_, 32.0f, 32.0f};
 
   SDL_RenderTexture(renderer, texture_.get(), &src, &dst);
 }

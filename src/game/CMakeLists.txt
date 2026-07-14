@@ -1,7 +1,13 @@
 add_library(game STATIC
     Game.cpp
     entities/Player.cpp
-    world/world.cpp
+    world/Tileset.cpp
+    world/TileMap.cpp
+    world/CollisionLayer.cpp
+    world/ObjectLayer.cpp
+    world/EntityLayer.cpp
+    world/World.cpp
+    world/ColorTileMap.cpp
 )
 
 target_include_directories(game PUBLIC
