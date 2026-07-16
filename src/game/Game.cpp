@@ -33,13 +33,19 @@ void GameApp::onStart() {
     player->setPosition(spawn->x, spawn->y);
   }
 
+  // Keep a raw pointer before transferring ownership
+  auto* playerPtr = player.get();
+
   // Transfer ownership of Player into the EntityLayer
   world_.entityLayer().addEntity(std::move(player));
+
+  // Connect player pointer to the world for camera tracking
+  world_.setPlayer(playerPtr);
 }
 
 void GameApp::onUpdate(float dtSeconds) {
   Application::onUpdate(dtSeconds);
-  world_.update(dtSeconds);
+  world_.update(dtSeconds, width_, height_);
 }
 
 void GameApp::onRender(SDL_Renderer* renderer) {

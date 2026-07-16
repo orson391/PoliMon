@@ -2,6 +2,10 @@
 
 #include <SDL3/SDL_render.h>
 
+namespace game::world {
+class Camera;
+}
+
 namespace game::entities {
 
 class Entity {
@@ -9,7 +13,7 @@ class Entity {
   virtual ~Entity() = default;
 
   virtual void update(float dt) = 0;
-  virtual void render(SDL_Renderer* renderer) = 0;
+  virtual void render(SDL_Renderer* renderer, const world::Camera& camera) = 0;
 
  protected:
   float x_{};

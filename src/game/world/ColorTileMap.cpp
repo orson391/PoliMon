@@ -1,4 +1,6 @@
 #include "world/ColorTileMap.h"
+#include "world/Camera.h"
+#include <cmath>
 
 #include <SDL3_image/SDL_image.h>
 
@@ -71,18 +73,24 @@ bool ColorTileMap::isSolid(int col, int row) const {
   return kind == ColorTileKind::Water || kind == ColorTileKind::Forest;
 }
 
-void ColorTileMap::render(SDL_Renderer* renderer, float tileDst) const {
+void ColorTileMap::render(SDL_Renderer* renderer, const Camera& camera, float tileDst) const {
   if (!renderer || tileDst <= 0.0f) return;
 
   Uint8 prevR, prevG, prevB, prevA;
   SDL_GetRenderDrawColor(renderer, &prevR, &prevG, &prevB, &prevA);
 
-  for (int row = 0; row < rows_; ++row) {
-    for (int col = 0; col < cols_; ++col) {
+  // Frustum culling: calculate only the columns and rows that intersect the camera viewport
+  int startCol = std::max(0, static_cast<int>(std::floor(camera.x() / tileDst)));
+  int endCol = std::min(cols_ - 1, static_cast<int>(std::floor((camera.x() + camera.viewportWidth()) / tileDst)));
+  int startRow = std::max(0, static_cast<int>(std::floor(camera.y() / tileDst)));
+  int endRow = std::min(rows_ - 1, static_cast<int>(std::floor((camera.y() + camera.viewportHeight()) / tileDst)));
+
+  for (int row = startRow; row <= endRow; ++row) {
+    for (int col = startCol; col <= endCol; ++col) {
       const SDL_Color c = colorFor(kindAt(col, row));
       SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
 
-      SDL_FRect dst{col * tileDst, row * tileDst, tileDst, tileDst};
+      SDL_FRect dst{col * tileDst - camera.x(), row * tileDst - camera.y(), tileDst, tileDst};
       SDL_RenderFillRect(renderer, &dst);
     }
   }

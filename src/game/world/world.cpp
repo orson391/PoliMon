@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "Logger.h"
+#include "entities/Player.h"
 
 // ---------------------------------------------------------------------------
 // Asset paths
@@ -53,6 +54,12 @@ bool World::load(SDL_Renderer* renderer, MapSource source) {
   }
 
   buildObjectLayer();
+
+  if (source_ == MapSource::ColorImage) {
+    camera_.setMapBounds(COLOR_GRID_COLS * COLOR_TILE_DST, COLOR_GRID_ROWS * COLOR_TILE_DST);
+  } else {
+    camera_.setMapBounds(MAP_COLS * TILE_SRC * TILE_SCALE, MAP_ROWS * TILE_SRC * TILE_SCALE);
+  }
 
   return ok;
 }
@@ -125,23 +132,28 @@ bool World::loadTilesetAssets(SDL_Renderer* renderer) {
 // ===========================================================================
 // update / render
 // ===========================================================================
-void World::update(float dt) {
+void World::update(float dt, float viewportWidth, float viewportHeight) {
   entityLayer_.update(dt);
+
+  camera_.setViewport(viewportWidth, viewportHeight);
+  if (player_) {
+    camera_.follow(player_->x(), player_->y(), 32.0f, 32.0f);
+  }
 }
 
 void World::render(SDL_Renderer* renderer) {
   if (!renderer) return;
 
   if (source_ == MapSource::ColorImage) {
-    colorMap_.render(renderer, COLOR_TILE_DST);
+    colorMap_.render(renderer, camera_, COLOR_TILE_DST);
   } else {
     // Render order: ground -> water -> props (back to front)
-    groundMap_.render(renderer, groundTileset_, TILE_SCALE);
-    waterMap_.render(renderer, waterTileset_, TILE_SCALE);
-    propsMap_.render(renderer, propsTileset_, TILE_SCALE);
+    groundMap_.render(renderer, groundTileset_, camera_, TILE_SCALE);
+    waterMap_.render(renderer, waterTileset_, camera_, TILE_SCALE);
+    propsMap_.render(renderer, propsTileset_, camera_, TILE_SCALE);
   }
 
-  entityLayer_.render(renderer);
+  entityLayer_.render(renderer, camera_);
 }
 
 // ===========================================================================

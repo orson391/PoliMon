@@ -31,6 +31,8 @@ enum class ColorTileKind {
 //   Once real tile art is ready, stop calling loadFromImage()/render() here
 //   and use TileMap + Tileset instead — see World::MapSource.
 // ---------------------------------------------------------------------------
+class Camera;
+
 class ColorTileMap {
  public:
   ColorTileMap() = default;
@@ -46,7 +48,7 @@ class ColorTileMap {
   int rows() const { return rows_; }
 
   /// Fills a coloured rect per cell, `tileDst` pixels square.
-  void render(SDL_Renderer* renderer, float tileDst) const;
+  void render(SDL_Renderer* renderer, const Camera& camera, float tileDst) const;
 
  private:
   int cols_ = 0;

@@ -1,4 +1,5 @@
 #include "world/EntityLayer.h"
+#include "world/Camera.h"
 
 namespace game::world {
 
@@ -12,9 +13,9 @@ void EntityLayer::update(float dt) {
   }
 }
 
-void EntityLayer::render(SDL_Renderer* renderer) {
+void EntityLayer::render(SDL_Renderer* renderer, const Camera& camera) {
   for (auto& entity : entities_) {
-    entity->render(renderer);
+    entity->render(renderer, camera);
   }
 }
 

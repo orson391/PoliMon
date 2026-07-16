@@ -17,15 +17,17 @@ namespace game::world {
 //   This layer sits on top of all tile layers so entities appear above the
 //   ground, water, and prop layers.
 // ---------------------------------------------------------------------------
+class Camera;
+
 class EntityLayer {
  public:
-  EntityLayer() = default;
+   EntityLayer() = default;
 
-  /// Transfer ownership of an entity into this layer.
-  void addEntity(std::unique_ptr<entities::Entity> entity);
+   /// Transfer ownership of an entity into this layer.
+   void addEntity(std::unique_ptr<entities::Entity> entity);
 
-  void update(float dt);
-  void render(SDL_Renderer* renderer);
+   void update(float dt);
+   void render(SDL_Renderer* renderer, const Camera& camera);
 
   /// Non-owning access to all entities (e.g. for collision queries).
   const std::vector<std::unique_ptr<entities::Entity>>& entities() const {

@@ -14,6 +14,8 @@ namespace game::world {
 //   render() draws each non-empty tile scaled to (tileWidth * scale) x
 //   (tileHeight * scale) destination pixels.
 // ---------------------------------------------------------------------------
+class Camera;
+
 class TileMap {
  public:
   TileMap() = default;
@@ -22,7 +24,7 @@ class TileMap {
   void init(int cols, int rows, std::vector<int> tileIds);
 
   void render(SDL_Renderer* renderer, const Tileset& tileset,
-              float scale = 1.0f) const;
+              const Camera& camera, float scale = 1.0f) const;
 
   int  cols()              const { return cols_; }
   int  rows()              const { return rows_; }

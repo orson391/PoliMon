@@ -25,7 +25,7 @@ class Player : public Entity {
   bool load(SDL_Renderer* renderer);
 
   void update(float dt) override;
-  void render(SDL_Renderer* renderer) override;
+  void render(SDL_Renderer* renderer, const world::Camera& camera) override;
 
   float x() const { return x_; }
   float y() const { return y_; }

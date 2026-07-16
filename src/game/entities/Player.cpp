@@ -3,6 +3,7 @@
 #include <SDL3_image/SDL_image.h>
 
 #include "Logger.h"
+#include "world/Camera.h"
 
 namespace game::entities {
 
@@ -52,8 +53,13 @@ void Player::update(float dt) {
   }
 }
 
-void Player::render(SDL_Renderer* renderer) {
+void Player::render(SDL_Renderer* renderer, const world::Camera& camera) {
   if (!texture_) {
+    return;
+  }
+
+  // Frustum culling: limit rendering distance for performance
+  if (!camera.isVisible(x_, y_, 32.0f, 32.0f)) {
     return;
   }
 
@@ -88,7 +94,7 @@ void Player::render(SDL_Renderer* renderer) {
                 static_cast<float>(row * (frameHeight + spacing)), static_cast<float>(frameWidth),
                 static_cast<float>(frameHeight)};
 
-  SDL_FRect dst{x_, y_, 32.0f, 32.0f};
+  SDL_FRect dst{x_ - camera.x(), y_ - camera.y(), 32.0f, 32.0f};
 
   SDL_RenderTexture(renderer, texture_.get(), &src, &dst);
 }

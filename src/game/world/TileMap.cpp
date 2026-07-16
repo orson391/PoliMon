@@ -1,4 +1,6 @@
 #include "world/TileMap.h"
+#include "world/Camera.h"
+#include <cmath>
 
 #include <algorithm>
 
@@ -19,19 +21,25 @@ int TileMap::tileAt(int col, int row) const {
 }
 
 void TileMap::render(SDL_Renderer* renderer, const Tileset& tileset,
-                     float scale) const {
+                     const Camera& camera, float scale) const {
   if (!renderer || !tileset.texture()) return;
 
   const float dstW = static_cast<float>(tileset.tileWidth())  * scale;
   const float dstH = static_cast<float>(tileset.tileHeight()) * scale;
 
-  for (int row = 0; row < rows_; ++row) {
-    for (int col = 0; col < cols_; ++col) {
+  // Frustum culling: calculate only the columns and rows that intersect the camera viewport
+  int startCol = std::max(0, static_cast<int>(std::floor(camera.x() / dstW)));
+  int endCol = std::min(cols_ - 1, static_cast<int>(std::floor((camera.x() + camera.viewportWidth()) / dstW)));
+  int startRow = std::max(0, static_cast<int>(std::floor(camera.y() / dstH)));
+  int endRow = std::min(rows_ - 1, static_cast<int>(std::floor((camera.y() + camera.viewportHeight()) / dstH)));
+
+  for (int row = startRow; row <= endRow; ++row) {
+    for (int col = startCol; col <= endCol; ++col) {
       const int id = tileAt(col, row);
       if (id < 0) continue;  // empty cell
 
       SDL_FRect src = tileset.srcRect(id);
-      SDL_FRect dst{col * dstW, row * dstH, dstW, dstH};
+      SDL_FRect dst{col * dstW - camera.x(), row * dstH - camera.y(), dstW, dstH};
 
       SDL_RenderTexture(renderer, tileset.texture(), &src, &dst);
     }

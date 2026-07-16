@@ -8,6 +8,11 @@
 #include "world/ObjectLayer.h"
 #include "world/TileMap.h"
 #include "world/Tileset.h"
+#include "world/Camera.h"
+
+namespace game::entities {
+class Player;
+}
 
 namespace game::world {
 
@@ -57,8 +62,11 @@ class World {
   /// Returns false on any asset load failure (game continues with partial assets).
   bool load(SDL_Renderer* renderer, MapSource source = MapSource::ColorImage);
 
-  void update(float dt);
+  void update(float dt, float viewportWidth, float viewportHeight);
   void render(SDL_Renderer* renderer);
+
+  void setPlayer(entities::Player* player) { player_ = player; }
+  const Camera& camera() const { return camera_; }
 
   MapSource source() const { return source_; }
 
@@ -96,6 +104,8 @@ class World {
   CollisionLayer collision_;
   ObjectLayer objectLayer_;
   EntityLayer entityLayer_;
+  Camera camera_;
+  entities::Player* player_ = nullptr;
 
   // ---- Private build helpers: ColorImage mode ------------------------------
   bool loadColorMap(SDL_Renderer* renderer);
