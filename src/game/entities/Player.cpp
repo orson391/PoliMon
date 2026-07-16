@@ -94,7 +94,8 @@ void Player::render(SDL_Renderer* renderer, const world::Camera& camera) {
                 static_cast<float>(row * (frameHeight + spacing)), static_cast<float>(frameWidth),
                 static_cast<float>(frameHeight)};
 
-  SDL_FRect dst{x_ - camera.x(), y_ - camera.y(), 32.0f, 32.0f};
+  const float zoom = camera.zoom();
+  SDL_FRect dst{(x_ - camera.x()) * zoom, (y_ - camera.y()) * zoom, 32.0f * zoom, 32.0f * zoom};
 
   SDL_RenderTexture(renderer, texture_.get(), &src, &dst);
 }

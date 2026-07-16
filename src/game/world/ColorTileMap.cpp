@@ -79,18 +79,20 @@ void ColorTileMap::render(SDL_Renderer* renderer, const Camera& camera, float ti
   Uint8 prevR, prevG, prevB, prevA;
   SDL_GetRenderDrawColor(renderer, &prevR, &prevG, &prevB, &prevA);
 
-  // Frustum culling: calculate only the columns and rows that intersect the camera viewport
+  const float zoom = camera.zoom();
+
+  // Frustum culling: calculate only the columns and rows that intersect the zoomed camera viewport
   int startCol = std::max(0, static_cast<int>(std::floor(camera.x() / tileDst)));
-  int endCol = std::min(cols_ - 1, static_cast<int>(std::floor((camera.x() + camera.viewportWidth()) / tileDst)));
+  int endCol = std::min(cols_ - 1, static_cast<int>(std::floor((camera.x() + camera.viewportWidth() / zoom) / tileDst)));
   int startRow = std::max(0, static_cast<int>(std::floor(camera.y() / tileDst)));
-  int endRow = std::min(rows_ - 1, static_cast<int>(std::floor((camera.y() + camera.viewportHeight()) / tileDst)));
+  int endRow = std::min(rows_ - 1, static_cast<int>(std::floor((camera.y() + camera.viewportHeight() / zoom) / tileDst)));
 
   for (int row = startRow; row <= endRow; ++row) {
     for (int col = startCol; col <= endCol; ++col) {
       const SDL_Color c = colorFor(kindAt(col, row));
       SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
 
-      SDL_FRect dst{col * tileDst - camera.x(), row * tileDst - camera.y(), tileDst, tileDst};
+      SDL_FRect dst{(col * tileDst - camera.x()) * zoom, (row * tileDst - camera.y()) * zoom, tileDst * zoom, tileDst * zoom};
       SDL_RenderFillRect(renderer, &dst);
     }
   }

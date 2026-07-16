@@ -27,11 +27,13 @@ void TileMap::render(SDL_Renderer* renderer, const Tileset& tileset,
   const float dstW = static_cast<float>(tileset.tileWidth())  * scale;
   const float dstH = static_cast<float>(tileset.tileHeight()) * scale;
 
-  // Frustum culling: calculate only the columns and rows that intersect the camera viewport
+  const float zoom = camera.zoom();
+
+  // Frustum culling: calculate only the columns and rows that intersect the zoomed camera viewport
   int startCol = std::max(0, static_cast<int>(std::floor(camera.x() / dstW)));
-  int endCol = std::min(cols_ - 1, static_cast<int>(std::floor((camera.x() + camera.viewportWidth()) / dstW)));
+  int endCol = std::min(cols_ - 1, static_cast<int>(std::floor((camera.x() + camera.viewportWidth() / zoom) / dstW)));
   int startRow = std::max(0, static_cast<int>(std::floor(camera.y() / dstH)));
-  int endRow = std::min(rows_ - 1, static_cast<int>(std::floor((camera.y() + camera.viewportHeight()) / dstH)));
+  int endRow = std::min(rows_ - 1, static_cast<int>(std::floor((camera.y() + camera.viewportHeight() / zoom) / dstH)));
 
   for (int row = startRow; row <= endRow; ++row) {
     for (int col = startCol; col <= endCol; ++col) {
@@ -39,7 +41,7 @@ void TileMap::render(SDL_Renderer* renderer, const Tileset& tileset,
       if (id < 0) continue;  // empty cell
 
       SDL_FRect src = tileset.srcRect(id);
-      SDL_FRect dst{col * dstW - camera.x(), row * dstH - camera.y(), dstW, dstH};
+      SDL_FRect dst{(col * dstW - camera.x()) * zoom, (row * dstH - camera.y()) * zoom, dstW * zoom, dstH * zoom};
 
       SDL_RenderTexture(renderer, tileset.texture(), &src, &dst);
     }
