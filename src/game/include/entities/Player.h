@@ -25,13 +25,17 @@ class Player : public Entity {
   bool load(SDL_Renderer* renderer);
 
   void update(float dt) override;
-  void render(SDL_Renderer* renderer) override;
+  void render(SDL_Renderer* renderer, const world::Camera& camera) override;
 
   float x() const { return x_; }
   float y() const { return y_; }
+  void setPosition(float x, float y) {
+    x_ = x;
+    y_ = y;
+  }
 
  private:
-  float speed_ = 100.0f;
+  float speed_ = 50.0f;
   bool moving_ = false;
   Direction direction_ = Direction::Down;
 

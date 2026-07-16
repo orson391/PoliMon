@@ -4,6 +4,7 @@
 
 #include "Application.h"
 #include "entities/Player.h"
+#include "world/World.h"
 
 namespace game {
 
@@ -25,7 +26,7 @@ class GameApp : public engine::Application {
   void onConfigReload(const core::Config& newConfig) override;
 
  private:
-  entities::Player player_;
+  world::World world_;
 };
 
 }  // namespace game
