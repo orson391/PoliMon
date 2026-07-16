@@ -4,6 +4,7 @@
 
 #include "Logger.h"
 #include "entities/Player.h"
+#include "graphics/TextureManager.h"
 
 namespace game {
 
@@ -14,12 +15,20 @@ GameApp::GameApp() {
 void GameApp::onStart() {
   core::Logger::log("Game started");
 
+  engine::graphics::TextureManager::instance().initialize(renderer());
+
   // Load world. Currently using the flat-colour tilemap.png placeholder;
   // once real tile art is ready, switch to game::world::MapSource::Tileset
   // — nothing else in this function needs to change.
   if (!world_.load(renderer(), game::world::MapSource::ColorImage)) {
     core::Logger::log("Failed to load world.");
   }
+
+  auto& textures = engine::graphics::TextureManager::instance();
+
+  textures.loadTexture("player", "C:\\Projects\\VsCode\\PoliMon\\asset\\Player.png");
+  textures.loadTexture("tileset", "assets/tileset.png");
+  textures.loadTexture("objects", "assets/objects.png");
 
   // Create Player and load its sprite
   auto player = std::make_unique<entities::Player>();

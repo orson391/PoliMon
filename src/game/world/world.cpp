@@ -19,8 +19,8 @@ static constexpr const char* kColorMapPath = "C:\\Projects\\VsCode\\PoliMon\\ass
 //   Each tile is TILE_SRC x TILE_SRC source pixels, drawn at
 //   TILE_SRC * TILE_SCALE destination pixels.
 // ---------------------------------------------------------------------------
-static constexpr int MAP_COLS = 20;
-static constexpr int MAP_ROWS = 15;
+static constexpr int MAP_COLS = 64;
+static constexpr int MAP_ROWS = 64;
 static constexpr int TILE_SRC = 64;        // source tile size in all tilesets (px)
 static constexpr float TILE_SCALE = 1.0f;  // destination = TILE_SRC * TILE_SCALE
 
@@ -29,8 +29,8 @@ static constexpr float TILE_SCALE = 1.0f;  // destination = TILE_SRC * TILE_SCAL
 //   tilemap.png is resampled onto a COLOR_GRID_COLS x COLOR_GRID_ROWS grid;
 //   each cell is drawn COLOR_TILE_DST pixels square.
 // ---------------------------------------------------------------------------
-static constexpr int COLOR_GRID_COLS = 50;
-static constexpr int COLOR_GRID_ROWS = 50;
+static constexpr int COLOR_GRID_COLS = 64;
+static constexpr int COLOR_GRID_ROWS = 64;
 static constexpr float COLOR_TILE_DST = 24.0f;
 
 namespace game::world {

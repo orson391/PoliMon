@@ -8,6 +8,8 @@ add_library(game STATIC
     world/EntityLayer.cpp
     world/World.cpp
     world/ColorTileMap.cpp
+
+    graphics/TextureManager.cpp
 )
 
 target_include_directories(game PUBLIC

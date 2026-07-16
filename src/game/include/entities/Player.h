@@ -1,22 +1,13 @@
 #pragma once
 
-#include <SDL3/SDL.h>
-
 #include <memory>
 
 #include "Entity.h"
+#include "graphics/TextureManager.h"
 
 namespace game::entities {
 
 enum class Direction { Up, Down, Left, Right };
-
-struct SDLTextureDeleter {
-  void operator()(SDL_Texture* texture) const {
-    if (texture) {
-      SDL_DestroyTexture(texture);
-    }
-  }
-};
 
 class Player : public Entity {
  public:
@@ -35,11 +26,11 @@ class Player : public Entity {
   }
 
  private:
-  float speed_ = 50.0f;
+  float speed_ = 100.0f;
   bool moving_ = false;
   Direction direction_ = Direction::Down;
 
-  std::unique_ptr<SDL_Texture, SDLTextureDeleter> texture_;
+  SDL_Texture* texture_ = nullptr;
 };
 
 }  // namespace game::entities

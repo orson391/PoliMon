@@ -8,18 +8,15 @@
 namespace game::entities {
 
 bool Player::load(SDL_Renderer* renderer) {
-  if (texture_) {
-    return true;
-  }
+  (void)renderer;  // renderer no longer needed
 
-  SDL_Texture* tex = IMG_LoadTexture(renderer, "C:\\Projects\\VsCode\\PoliMon\\asset\\Player.png");
+  texture_ = engine::graphics::TextureManager::instance().getTexture("player");
 
-  if (!tex) {
-    core::Logger::log("Failed to load player sprite: " + std::string(SDL_GetError()));
+  if (!texture_) {
+    core::Logger::log("Player texture not found.");
     return false;
   }
 
-  texture_.reset(tex);
   return true;
 }
 
@@ -97,7 +94,7 @@ void Player::render(SDL_Renderer* renderer, const world::Camera& camera) {
   const float zoom = camera.zoom();
   SDL_FRect dst{(x_ - camera.x()) * zoom, (y_ - camera.y()) * zoom, 32.0f * zoom, 32.0f * zoom};
 
-  SDL_RenderTexture(renderer, texture_.get(), &src, &dst);
+  SDL_RenderTexture(renderer, texture_, &src, &dst);
 }
 
 }  // namespace game::entities
