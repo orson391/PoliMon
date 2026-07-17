@@ -57,6 +57,7 @@ class Application {
 
  private:
   bool running_{false};
+  bool initialized_{false};
   SDL_Window* window_{nullptr};
   SDL_Renderer* renderer_{nullptr};
   std::filesystem::file_time_type lastConfigWrite_{};

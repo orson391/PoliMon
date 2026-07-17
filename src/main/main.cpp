@@ -1,3 +1,5 @@
+#include <cstdlib>
+
 #include "Game.h"
 #include "Logger.h"
 
@@ -5,8 +7,11 @@ int main() {
   core::Logger::log("Starting modular SDL3 application");
 
   game::GameApp app;
-  app.initialize();
+  if (!app.initialize()) {
+    return EXIT_FAILURE;
+  }
+
   app.run();
 
-  return 0;
+  return EXIT_SUCCESS;
 }

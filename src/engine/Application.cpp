@@ -109,6 +109,7 @@ bool Application::initialize() {
   }
 
   running_ = true;
+  initialized_ = true;
   core::Logger::log("Application initialized with title='" + config_.title +
                     "' size=" + std::to_string(config_.width) + "x" +
                     std::to_string(config_.height) + " fps=" + std::to_string(config_.target_fps));
@@ -167,6 +168,10 @@ bool Application::reloadConfigFromFile(const std::string& path) {
 }
 
 void Application::run() {
+  if (!initialized_) {
+    return;
+  }
+
   onStart();
 
   while (running_) {
