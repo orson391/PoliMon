@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SDL3/SDL.h>
-
 #include <memory>
 #include <vector>
 
@@ -27,7 +25,7 @@ class EntityLayer {
    void addEntity(std::unique_ptr<entities::Entity> entity);
 
    void update(float dt);
-   void render(SDL_Renderer* renderer, const Camera& camera);
+   void render(::graphics::IRenderer& renderer, const Camera& camera);
 
   /// Non-owning access to all entities (e.g. for collision queries).
   const std::vector<std::unique_ptr<entities::Entity>>& entities() const {

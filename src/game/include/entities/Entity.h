@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL3/SDL_render.h>
+#include "IRenderer.h"
 
 namespace game::world {
 class Camera;
@@ -13,7 +13,7 @@ class Entity {
   virtual ~Entity() = default;
 
   virtual void update(float dt) = 0;
-  virtual void render(SDL_Renderer* renderer, const world::Camera& camera) = 0;
+  virtual void render(::graphics::IRenderer& renderer, const world::Camera& camera) = 0;
 
  protected:
   float x_{};

@@ -31,7 +31,7 @@ namespace game::world {
 // ===========================================================================
 // load
 // ===========================================================================
-bool World::load(SDL_Renderer* renderer, MapSource source) {
+bool World::load(::graphics::IRenderer& renderer, MapSource source) {
   source_ = source;
   if (source_ == MapSource::Tileset) {
     return loadFromMapFile(renderer, core::ResourcePaths::map("maps/test.tmj").string());
@@ -65,7 +65,7 @@ bool World::load(SDL_Renderer* renderer, MapSource source) {
 //   ColorImage mode: resample tilemap.png onto a grid and classify each
 //   cell by nearest palette colour. No tileset texture is needed.
 // ===========================================================================
-bool World::loadColorMap(SDL_Renderer* /*renderer*/) {
+bool World::loadColorMap(::graphics::IRenderer& /*renderer*/) {
   if (!colorMap_.loadFromImage(core::ResourcePaths::map("tilemap.png").string(),
                                COLOR_GRID_COLS, COLOR_GRID_ROWS)) {
     core::Logger::log("World: failed to load colour tilemap.");
@@ -78,7 +78,7 @@ bool World::loadColorMap(SDL_Renderer* /*renderer*/) {
 // loadTilesetAssets
 //   Tileset mode: load the three real spritesheets.
 // ===========================================================================
-bool World::loadTilesetAssets(SDL_Renderer* renderer) {
+bool World::loadTilesetAssets(::graphics::IRenderer& renderer) {
   bool ok = true;
 
   // ---- Ground Tiles (2048x2048 — 32 cols x 32 rows of 64px tiles) --------
@@ -185,9 +185,7 @@ bool World::tryMove(entities::Player& player, float dx, float dy) {
   return movedX && movedY;
 }
 
-void World::render(SDL_Renderer* renderer) {
-  if (!renderer) return;
-
+void World::render(::graphics::IRenderer& renderer) {
   if (source_ == MapSource::ColorImage) {
     colorMap_.render(renderer, camera_, COLOR_TILE_DST);
   } else {
@@ -442,7 +440,7 @@ void World::buildObjectLayer() {
   objectLayer_.addObject({"town_sign", "trigger", 13.0f * DST, 2.0f * DST, DST, DST});
 }
 
-bool World::loadFromMapFile(SDL_Renderer* renderer, const std::string& path) {
+bool World::loadFromMapFile(::graphics::IRenderer& renderer, const std::string& path) {
   MapData mapData;
   if (!MapLoader::loadFromFile(path, mapData)) {
     core::Logger::log("World: failed to load map file.");

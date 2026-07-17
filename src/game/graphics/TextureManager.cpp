@@ -13,35 +13,36 @@ TextureManager::~TextureManager() {
   clear();
 }
 
-bool TextureManager::initialize(SDL_Renderer* renderer) {
-  renderer_ = renderer;
-  return renderer_ != nullptr;
+bool TextureManager::initialize(::graphics::IRenderer& renderer) {
+  renderer_ = &renderer;
+  return true;
 }
 
-SDL_Texture* TextureManager::loadTexture(const std::string& name, const std::string& filename) {
+std::shared_ptr<::graphics::Texture> TextureManager::loadTexture(const std::string& name,
+                                                                  const std::string& filename) {
   auto it = textures_.find(name);
 
-  if (it != textures_.end()) return it->second.get();
+  if (it != textures_.end()) return it->second;
 
-  SDL_Texture* texture = IMG_LoadTexture(renderer_, filename.c_str());
+  if (!renderer_) return nullptr;
+  auto texture = renderer_->loadTexture(filename);
 
   if (!texture) {
-    core::Logger::log(std::string("Failed to load texture: ") + filename + " : " + SDL_GetError());
-
+    core::Logger::log("Failed to load texture: " + filename);
     return nullptr;
   }
 
-  textures_[name] = std::unique_ptr<SDL_Texture, TextureDeleter>(texture);
+  textures_[name] = texture;
 
   return texture;
 }
 
-SDL_Texture* TextureManager::getTexture(const std::string& name) {
+std::shared_ptr<::graphics::Texture> TextureManager::getTexture(const std::string& name) {
   auto it = textures_.find(name);
 
   if (it == textures_.end()) return nullptr;
 
-  return it->second.get();
+  return it->second;
 }
 
 void TextureManager::unloadTexture(const std::string& name) {

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SDL3/SDL.h>
-
 #include "Application.h"
 #include "entities/Player.h"
 #include "world/World.h"
@@ -21,7 +19,7 @@ class GameApp : public engine::Application {
  protected:
   void onStart() override;
   void onUpdate(float dtSeconds) override;
-  void onRender(SDL_Renderer* renderer) override;
+  void onRender(graphics::IRenderer& renderer) override;
   void onClose() override;
   void onConfigReload(const core::Config& newConfig) override;
 

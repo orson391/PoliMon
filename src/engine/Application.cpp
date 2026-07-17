@@ -1,12 +1,15 @@
 #include "Application.h"
 
 #include <SDL3/SDL.h>
+#include <glad/glad.h>
 
 #include <filesystem>
+#include <memory>
 #include <string>
 
 #include "Logger.h"
 #include "ResourcePaths.h"
+#include "gl_context/renderer.h"
 
 namespace engine {
 
@@ -26,9 +29,9 @@ Application::Application(const std::string& title, int width, int height)
 }
 
 Application::~Application() {
-  if (renderer_) {
-    SDL_DestroyRenderer(renderer_);
-  }
+  // Destroy renderer-owned GL objects while the context is still current.
+  renderer_.reset();
+  if (glContext_) SDL_GL_DestroyContext(glContext_);
   if (window_) {
     SDL_DestroyWindow(window_);
   }
@@ -48,7 +51,12 @@ bool Application::initialize() {
     return false;
   }
 
-  Uint32 windowFlags = SDL_WINDOW_RESIZABLE;
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+  Uint32 windowFlags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
   if (config_.fullscreen) {
     windowFlags |= SDL_WINDOW_FULLSCREEN;
   }
@@ -63,14 +71,37 @@ bool Application::initialize() {
   width_ = config_.width;
   height_ = config_.height;
 
-  renderer_ = SDL_CreateRenderer(window_, nullptr);
-  if (!renderer_) {
-    core::Logger::log("Renderer creation failed: " + std::string(SDL_GetError()));
+  glContext_ = SDL_GL_CreateContext(window_);
+  if (!glContext_ || !SDL_GL_MakeCurrent(window_, glContext_)) {
+    core::Logger::log("OpenGL context creation failed: " + std::string(SDL_GetError()));
     SDL_DestroyWindow(window_);
     window_ = nullptr;
     SDL_Quit();
     return false;
   }
+
+  if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(SDL_GL_GetProcAddress))) {
+    core::Logger::log("Failed to load OpenGL functions.");
+    SDL_GL_DestroyContext(glContext_);
+    glContext_ = nullptr;
+    SDL_DestroyWindow(window_);
+    window_ = nullptr;
+    SDL_Quit();
+    return false;
+  }
+
+  auto glRenderer = std::make_unique<graphics::gl_context::Renderer>();
+  if (!glRenderer->initialize(config_.width, config_.height)) {
+    core::Logger::log("OpenGL renderer initialization failed.");
+    SDL_GL_DestroyContext(glContext_);
+    glContext_ = nullptr;
+    SDL_DestroyWindow(window_);
+    window_ = nullptr;
+    SDL_Quit();
+    return false;
+  }
+  renderer_ = std::move(glRenderer);
+  SDL_GL_SetSwapInterval(1);
 
   for (const auto& rect : config_.rectangles) {
     rectangles_[rect.id] = rect;
@@ -152,11 +183,11 @@ void Application::run() {
     onInput();
     onUpdate(dtSeconds);
 
-    SDL_SetRenderDrawColor(renderer_, 20, 20, 20, 255);
-    SDL_RenderClear(renderer_);
-
-    onRender(renderer_);
-    SDL_RenderPresent(renderer_);
+    renderer_->setViewport(static_cast<int>(width_), static_cast<int>(height_));
+    renderer_->beginFrame({20.0f / 255.0f, 20.0f / 255.0f, 20.0f / 255.0f, 1.0f});
+    onRender(*renderer_);
+    renderer_->endFrame();
+    SDL_GL_SwapWindow(window_);
   }
 
   // onClose() was previously declared/overridden (GameApp logs "Game
@@ -206,8 +237,9 @@ void Application::onUpdate(float dtSeconds) {
   }
 }
 
-void Application::onRender(SDL_Renderer* renderer) {
+void Application::onRender(graphics::IRenderer& renderer) {
   // Implementation for rendering
+  (void)renderer;
 }
 
 void Application::onClose() {}

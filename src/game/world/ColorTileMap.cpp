@@ -1,13 +1,14 @@
 #include "world/ColorTileMap.h"
-#include "world/Camera.h"
-#include <cmath>
 
 #include <SDL3_image/SDL_image.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 #include "Logger.h"
+#include "graphics/IRenderer.h"
+#include "world/Camera.h"
 
 namespace game::world {
 
@@ -73,45 +74,46 @@ bool ColorTileMap::isSolid(int col, int row) const {
   return kind == ColorTileKind::Water || kind == ColorTileKind::Forest;
 }
 
-void ColorTileMap::render(SDL_Renderer* renderer, const Camera& camera, float tileDst) const {
-  if (!renderer || tileDst <= 0.0f) return;
-
-  Uint8 prevR, prevG, prevB, prevA;
-  SDL_GetRenderDrawColor(renderer, &prevR, &prevG, &prevB, &prevA);
+void ColorTileMap::render(::graphics::IRenderer& renderer, const Camera& camera,
+                          float tileDst) const {
+  if (tileDst <= 0.0f) return;
 
   const float zoom = camera.zoom();
 
   // Frustum culling: calculate only the columns and rows that intersect the zoomed camera viewport
   int startCol = std::max(0, static_cast<int>(std::floor(camera.x() / tileDst)));
-  int endCol = std::min(cols_ - 1, static_cast<int>(std::floor((camera.x() + camera.viewportWidth() / zoom) / tileDst)));
+  int endCol = std::min(
+      cols_ - 1,
+      static_cast<int>(std::floor((camera.x() + camera.viewportWidth() / zoom) / tileDst)));
   int startRow = std::max(0, static_cast<int>(std::floor(camera.y() / tileDst)));
-  int endRow = std::min(rows_ - 1, static_cast<int>(std::floor((camera.y() + camera.viewportHeight() / zoom) / tileDst)));
+  int endRow = std::min(
+      rows_ - 1,
+      static_cast<int>(std::floor((camera.y() + camera.viewportHeight() / zoom) / tileDst)));
 
   for (int row = startRow; row <= endRow; ++row) {
     for (int col = startCol; col <= endCol; ++col) {
-      const SDL_Color c = colorFor(kindAt(col, row));
-      SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
+      const ::graphics::Color c = colorFor(kindAt(col, row));
 
-      SDL_FRect dst{(col * tileDst - camera.x()) * zoom, (row * tileDst - camera.y()) * zoom, tileDst * zoom, tileDst * zoom};
-      SDL_RenderFillRect(renderer, &dst);
+      const ::graphics::Rect dst{(col * tileDst - camera.x()) * zoom,
+                                 (row * tileDst - camera.y()) * zoom, tileDst * zoom,
+                                 tileDst * zoom};
+      renderer.drawRect(dst, c);
     }
   }
-
-  SDL_SetRenderDrawColor(renderer, prevR, prevG, prevB, prevA);
 }
 
-SDL_Color ColorTileMap::colorFor(ColorTileKind kind) {
+::graphics::Color ColorTileMap::colorFor(ColorTileKind kind) {
   switch (kind) {
     case ColorTileKind::Water:
-      return kWaterColor;
+      return {kWaterColor.r / 255.0f, kWaterColor.g / 255.0f, kWaterColor.b / 255.0f, 1.0f};
     case ColorTileKind::Sand:
-      return kSandColor;
+      return {kSandColor.r / 255.0f, kSandColor.g / 255.0f, kSandColor.b / 255.0f, 1.0f};
     case ColorTileKind::Grass:
-      return kGrassColor;
+      return {kGrassColor.r / 255.0f, kGrassColor.g / 255.0f, kGrassColor.b / 255.0f, 1.0f};
     case ColorTileKind::Forest:
-      return kForestColor;
+      return {kForestColor.r / 255.0f, kForestColor.g / 255.0f, kForestColor.b / 255.0f, 1.0f};
   }
-  return kWaterColor;
+  return {kWaterColor.r / 255.0f, kWaterColor.g / 255.0f, kWaterColor.b / 255.0f, 1.0f};
 }
 
 ColorTileKind ColorTileMap::classify(Uint8 r, Uint8 g, Uint8 b) {

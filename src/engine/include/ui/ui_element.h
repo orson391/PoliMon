@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "IRenderer.h"
+
 namespace engine::ui {
 class UiElement {
  public:
@@ -18,9 +20,9 @@ class UiElement {
   UiElement(const UiElement&) = delete;
   UiElement& operator=(const UiElement&) = delete;
 
-  virtual bool load(SDL_Renderer* renderer);
+  virtual bool load(graphics::IRenderer& renderer);
   virtual void update(float deltaTime);
-  virtual void render(SDL_Renderer* renderer);
+  virtual void render(graphics::IRenderer& renderer);
 
   virtual bool handleEvent(const SDL_Event& event);
 

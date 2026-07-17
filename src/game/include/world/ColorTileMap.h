@@ -48,14 +48,14 @@ class ColorTileMap {
   int rows() const { return rows_; }
 
   /// Fills a coloured rect per cell, `tileDst` pixels square.
-  void render(SDL_Renderer* renderer, const Camera& camera, float tileDst) const;
+  void render(::graphics::IRenderer& renderer, const Camera& camera, float tileDst) const;
 
  private:
   int cols_ = 0;
   int rows_ = 0;
   std::vector<ColorTileKind> kinds_;
 
-  static SDL_Color colorFor(ColorTileKind kind);
+  static ::graphics::Color colorFor(ColorTileKind kind);
   static ColorTileKind classify(Uint8 r, Uint8 g, Uint8 b);
 };
 

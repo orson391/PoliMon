@@ -2,7 +2,7 @@
 
 namespace engine::ui {
 
-bool UiElement::load(SDL_Renderer* renderer) {
+bool UiElement::load(graphics::IRenderer& renderer) {
   for (auto& child : m_children) {
     if (!child->load(renderer)) return false;
   }
@@ -16,7 +16,7 @@ void UiElement::update(float deltaTime) {
   }
 }
 
-void UiElement::render(SDL_Renderer* renderer) {
+void UiElement::render(graphics::IRenderer& renderer) {
   if (!m_visible) return;
   for (auto& child : m_children) {
     child->render(renderer);

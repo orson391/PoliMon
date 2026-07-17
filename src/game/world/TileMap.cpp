@@ -20,9 +20,9 @@ int TileMap::tileAt(int col, int row) const {
   return tiles_[static_cast<size_t>(row * cols_ + col)];
 }
 
-void TileMap::render(SDL_Renderer* renderer, const Tileset& tileset,
+void TileMap::render(::graphics::IRenderer& renderer, const Tileset& tileset,
                      const Camera& camera, float scale) const {
-  if (!renderer || !tileset.texture()) return;
+  if (!tileset.texture()) return;
 
   const float dstW = static_cast<float>(tileset.tileWidth())  * scale;
   const float dstH = static_cast<float>(tileset.tileHeight()) * scale;
@@ -40,10 +40,11 @@ void TileMap::render(SDL_Renderer* renderer, const Tileset& tileset,
       const int id = tileAt(col, row);
       if (id < 0) continue;  // empty cell
 
-      SDL_FRect src = tileset.srcRect(id);
-      SDL_FRect dst{(col * dstW - camera.x()) * zoom, (row * dstH - camera.y()) * zoom, dstW * zoom, dstH * zoom};
+      const ::graphics::Rect src = tileset.srcRect(id);
+      const ::graphics::Rect dst{(col * dstW - camera.x()) * zoom, (row * dstH - camera.y()) * zoom,
+                                 dstW * zoom, dstH * zoom};
 
-      SDL_RenderTexture(renderer, tileset.texture(), &src, &dst);
+      renderer.drawTexture(*tileset.texture(), src, dst);
     }
   }
 }

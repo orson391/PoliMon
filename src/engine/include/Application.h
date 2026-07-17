@@ -7,9 +7,9 @@
                           // include, which is fragile (breaks if include order changes).
 
 #include "Config.h"
+#include "IRenderer.h"
 
 struct SDL_Window;
-struct SDL_Renderer;
 
 namespace engine {
 
@@ -20,9 +20,9 @@ class Application {
   Application(const std::string& title = "SDL3 Modular App", int width = 800, int height = 600);
   virtual ~Application();
 
-  // Application owns raw SDL_Window*/SDL_Renderer* handles with no reference
-  // counting. Copying would produce two objects that both believe they own
-  // (and will destroy) the same window/renderer, causing a double free and
+  // Application owns the SDL window/context and its graphics abstraction.
+  // Copying would produce two objects that both believe they own
+  // (and will destroy) the same resources, causing a double free and
   // use-after-free. Moving is disabled too since nothing in the codebase
   // needs to relocate an Application and disabling it avoids having to
   // reason about a "moved-from" running app. Delete both explicitly instead
@@ -35,7 +35,8 @@ class Application {
   bool initialize();
   void run();
 
-  SDL_Renderer* renderer() const { return renderer_; }
+  graphics::IRenderer& renderer() { return *renderer_; }
+  const graphics::IRenderer& renderer() const { return *renderer_; }
   const core::Config& config() const { return config_; }
   bool reloadConfigFromFile(const std::string& path = {});
 
@@ -44,7 +45,7 @@ class Application {
   virtual void onClear();
   virtual void onInput();
   virtual void onUpdate(float dtSeconds);
-  virtual void onRender(SDL_Renderer* renderer);
+  virtual void onRender(graphics::IRenderer& renderer);
   virtual void onClose();
   virtual void onConfigReload(const core::Config& newConfig);
 
@@ -58,7 +59,8 @@ class Application {
   bool running_{false};
   bool initialized_{false};
   SDL_Window* window_{nullptr};
-  SDL_Renderer* renderer_{nullptr};
+  void* glContext_{nullptr};
+  std::unique_ptr<graphics::IRenderer> renderer_;
   std::filesystem::file_time_type lastConfigWrite_{};
   std::string configPath_;
   bool configLoadedAtLeastOnce_{false};

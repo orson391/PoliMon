@@ -7,9 +7,7 @@
 
 namespace game::entities {
 
-bool Player::load(SDL_Renderer* renderer) {
-  (void)renderer;  // renderer no longer needed
-
+bool Player::load() {
   texture_ = engine::graphics::TextureManager::instance().getTexture("player");
 
   if (!texture_) {
@@ -65,7 +63,7 @@ void Player::commitMove(float dx, float dy) {
   y_ += dy;
 }
 
-void Player::render(SDL_Renderer* renderer, const world::Camera& camera) {
+void Player::render(::graphics::IRenderer& renderer, const world::Camera& camera) {
   if (!texture_) {
     return;
   }
@@ -102,14 +100,15 @@ void Player::render(SDL_Renderer* renderer, const world::Camera& camera) {
     column = (SDL_GetTicks() / 100) % 4;
   }
 
-  SDL_FRect src{static_cast<float>(column * (frameWidth + spacing)),
-                static_cast<float>(row * (frameHeight + spacing)), static_cast<float>(frameWidth),
-                static_cast<float>(frameHeight)};
+  const ::graphics::Rect src{static_cast<float>(column * (frameWidth + spacing)),
+                             static_cast<float>(row * (frameHeight + spacing)),
+                             static_cast<float>(frameWidth), static_cast<float>(frameHeight)};
 
   const float zoom = camera.zoom();
-  SDL_FRect dst{(x_ - camera.x()) * zoom, (y_ - camera.y()) * zoom, 32.0f * zoom, 32.0f * zoom};
+  const ::graphics::Rect dst{(x_ - camera.x()) * zoom, (y_ - camera.y()) * zoom, 32.0f * zoom,
+                             32.0f * zoom};
 
-  SDL_RenderTexture(renderer, texture_, &src, &dst);
+  renderer.drawTexture(*texture_, src, dst);
 }
 
 }  // namespace game::entities

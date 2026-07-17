@@ -30,7 +30,7 @@ void GameApp::onStart() {
 
   // Create Player and load its sprite
   auto player = std::make_unique<entities::Player>();
-  if (!player->load(renderer())) {
+  if (!player->load()) {
     core::Logger::log("Failed to load player.");
   }
 
@@ -55,12 +55,12 @@ void GameApp::onUpdate(float dtSeconds) {
   world_.update(dtSeconds, width_, height_);
 }
 
-void GameApp::onRender(SDL_Renderer* renderer) {
-  if (!renderer) return;
+void GameApp::onRender(graphics::IRenderer& renderer) {
   world_.render(renderer);
 }
 
 void GameApp::onClose() {
+  engine::graphics::TextureManager::instance().clear();
   core::Logger::log("Game closed");
 }
 

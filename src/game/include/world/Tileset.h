@@ -1,21 +1,11 @@
 #pragma once
 
-#include <SDL3/SDL.h>
-#include <SDL3_image/SDL_image.h>
-
 #include <memory>
 #include <string>
 
-namespace game::world {
+#include "IRenderer.h"
 
-// ---------------------------------------------------------------------------
-// SDLTextureDeleter
-// ---------------------------------------------------------------------------
-struct SDLTextureDeleter {
-  void operator()(SDL_Texture* tex) const {
-    if (tex) SDL_DestroyTexture(tex);
-  }
-};
+namespace game::world {
 
 // ---------------------------------------------------------------------------
 // TilesetDef
@@ -34,7 +24,7 @@ struct TilesetDef {
 
 // ---------------------------------------------------------------------------
 // Tileset
-//   Owns an SDL_Texture for one spritesheet and can return the source rect
+//   Owns a graphics texture for one spritesheet and can return the source rect
 //   for any tile ID (0-based, row-major order).
 // ---------------------------------------------------------------------------
 class Tileset {
@@ -42,19 +32,19 @@ class Tileset {
   Tileset() = default;
 
   /// Load the texture from the definition. Returns false on failure.
-  bool load(SDL_Renderer* renderer, const TilesetDef& def);
+  bool load(::graphics::IRenderer& renderer, const TilesetDef& def);
 
   /// Source rect in the sheet for a given tile id.
-  SDL_FRect srcRect(int tileId) const;
+  ::graphics::Rect srcRect(int tileId) const;
 
-  SDL_Texture* texture()    const { return texture_.get(); }
+  const std::shared_ptr<::graphics::Texture>& texture() const { return texture_; }
   int          tileWidth()  const { return def_.tileWidth; }
   int          tileHeight() const { return def_.tileHeight; }
   int          cols()       const { return cols_; }
   int          rows()       const { return rows_; }
 
  private:
-  std::unique_ptr<SDL_Texture, SDLTextureDeleter> texture_;
+  std::shared_ptr<::graphics::Texture> texture_;
   TilesetDef def_;
   int cols_ = 0;
   int rows_ = 0;

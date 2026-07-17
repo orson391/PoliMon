@@ -23,7 +23,7 @@ class TileMap {
   /// Populate with hard-coded or procedurally generated data.
   void init(int cols, int rows, std::vector<int> tileIds);
 
-  void render(SDL_Renderer* renderer, const Tileset& tileset,
+  void render(::graphics::IRenderer& renderer, const Tileset& tileset,
               const Camera& camera, float scale = 1.0f) const;
 
   int  cols()              const { return cols_; }

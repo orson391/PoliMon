@@ -13,10 +13,10 @@ class Player : public Entity {
  public:
   Player() = default;
 
-  bool load(SDL_Renderer* renderer);
+  bool load();
 
   void update(float dt) override;
-  void render(SDL_Renderer* renderer, const world::Camera& camera) override;
+  void render(::graphics::IRenderer& renderer, const world::Camera& camera) override;
 
   float x() const { return x_; }
   float y() const { return y_; }
@@ -40,7 +40,7 @@ class Player : public Entity {
   float width_ = 32.0f;
   float height_ = 32.0f;
 
-  SDL_Texture* texture_ = nullptr;
+  std::shared_ptr<::graphics::Texture> texture_;
 };
 
 }  // namespace game::entities

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SDL3/SDL.h>
-
 #include "world/CollisionLayer.h"
 #include "world/ColorTileMap.h"
 #include "world/EntityLayer.h"
@@ -61,10 +59,10 @@ class World {
   /// Load and build the map using `source` (defaults to the colour-image
   /// placeholder — pass MapSource::Tileset once real tile art is ready).
   /// Returns false on any asset load failure (game continues with partial assets).
-  bool load(SDL_Renderer* renderer, MapSource source = MapSource::ColorImage);
+  bool load(::graphics::IRenderer& renderer, MapSource source = MapSource::ColorImage);
 
   void update(float dt, float viewportWidth, float viewportHeight);
-  void render(SDL_Renderer* renderer);
+  void render(::graphics::IRenderer& renderer);
   bool tryMove(entities::Player& player, float dx, float dy);
 
   void setPlayer(entities::Player* player) { player_ = player; }
@@ -110,16 +108,16 @@ class World {
   entities::Player* player_ = nullptr;
 
   // ---- Private build helpers: ColorImage mode ------------------------------
-  bool loadColorMap(SDL_Renderer* renderer);
+  bool loadColorMap(::graphics::IRenderer& renderer);
   void buildCollisionLayerFromColorMap();
 
   // ---- Private build helpers: Tileset mode ---------------------------------
-  bool loadTilesetAssets(SDL_Renderer* renderer);
+  bool loadTilesetAssets(::graphics::IRenderer& renderer);
   void buildGroundMap();
   void buildWaterMap();
   void buildPropsMap();
   void buildCollisionLayerFromTileset();
-  bool loadFromMapFile(SDL_Renderer* renderer, const std::string& path);
+  bool loadFromMapFile(::graphics::IRenderer& renderer, const std::string& path);
 
   // ---- Shared -----------------------------------------------------------
   void buildObjectLayer();
