@@ -28,6 +28,8 @@ struct MapObject {
 class ObjectLayer {
  public:
   ObjectLayer() = default;
+  ObjectLayer(const ObjectLayer&) = default;
+  ObjectLayer& operator=(const ObjectLayer&) = default;
 
   void addObject(MapObject obj);
 

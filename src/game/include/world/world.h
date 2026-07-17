@@ -5,6 +5,7 @@
 #include "world/CollisionLayer.h"
 #include "world/ColorTileMap.h"
 #include "world/EntityLayer.h"
+#include "world/MapLoader.h"
 #include "world/ObjectLayer.h"
 #include "world/TileMap.h"
 #include "world/Tileset.h"
@@ -64,6 +65,7 @@ class World {
 
   void update(float dt, float viewportWidth, float viewportHeight);
   void render(SDL_Renderer* renderer);
+  bool tryMove(entities::Player& player, float dx, float dy);
 
   void setPlayer(entities::Player* player) { player_ = player; }
   const Camera& camera() const { return camera_; }
@@ -117,9 +119,13 @@ class World {
   void buildWaterMap();
   void buildPropsMap();
   void buildCollisionLayerFromTileset();
+  bool loadFromMapFile(SDL_Renderer* renderer, const std::string& path);
 
   // ---- Shared -----------------------------------------------------------
   void buildObjectLayer();
+  bool canOccupy(float x, float y, float w, float h) const;
+  float mapWidth() const;
+  float mapHeight() const;
 };
 
 }  // namespace game::world

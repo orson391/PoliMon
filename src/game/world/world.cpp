@@ -2,16 +2,9 @@
 
 #include <algorithm>
 
+#include "ResourcePaths.h"
 #include "Logger.h"
 #include "entities/Player.h"
-
-// ---------------------------------------------------------------------------
-// Asset paths
-// ---------------------------------------------------------------------------
-static constexpr const char* kGroundPath = "C:\\Projects\\VsCode\\PoliMon\\asset\\Ground Tiles.png";
-static constexpr const char* kWaterPath = "C:\\Projects\\VsCode\\PoliMon\\asset\\Water Tiles.png";
-static constexpr const char* kPropsPath = "C:\\Projects\\VsCode\\PoliMon\\asset\\Props.png";
-static constexpr const char* kColorMapPath = "C:\\Projects\\VsCode\\PoliMon\\asset\\tilemap.png";
 
 // ---------------------------------------------------------------------------
 // Map constants — Tileset mode
@@ -19,8 +12,8 @@ static constexpr const char* kColorMapPath = "C:\\Projects\\VsCode\\PoliMon\\ass
 //   Each tile is TILE_SRC x TILE_SRC source pixels, drawn at
 //   TILE_SRC * TILE_SCALE destination pixels.
 // ---------------------------------------------------------------------------
-static constexpr int MAP_COLS = 20;
-static constexpr int MAP_ROWS = 15;
+static constexpr int MAP_COLS = 64;
+static constexpr int MAP_ROWS = 64;
 static constexpr int TILE_SRC = 64;        // source tile size in all tilesets (px)
 static constexpr float TILE_SCALE = 1.0f;  // destination = TILE_SRC * TILE_SCALE
 
@@ -29,8 +22,8 @@ static constexpr float TILE_SCALE = 1.0f;  // destination = TILE_SRC * TILE_SCAL
 //   tilemap.png is resampled onto a COLOR_GRID_COLS x COLOR_GRID_ROWS grid;
 //   each cell is drawn COLOR_TILE_DST pixels square.
 // ---------------------------------------------------------------------------
-static constexpr int COLOR_GRID_COLS = 50;
-static constexpr int COLOR_GRID_ROWS = 50;
+static constexpr int COLOR_GRID_COLS = 64;
+static constexpr int COLOR_GRID_ROWS = 64;
 static constexpr float COLOR_TILE_DST = 24.0f;
 
 namespace game::world {
@@ -40,6 +33,9 @@ namespace game::world {
 // ===========================================================================
 bool World::load(SDL_Renderer* renderer, MapSource source) {
   source_ = source;
+  if (source_ == MapSource::Tileset) {
+    return loadFromMapFile(renderer, core::ResourcePaths::map("maps/test.tmj").string());
+  }
   bool ok = true;
 
   if (source_ == MapSource::ColorImage) {
@@ -70,7 +66,8 @@ bool World::load(SDL_Renderer* renderer, MapSource source) {
 //   cell by nearest palette colour. No tileset texture is needed.
 // ===========================================================================
 bool World::loadColorMap(SDL_Renderer* /*renderer*/) {
-  if (!colorMap_.loadFromImage(kColorMapPath, COLOR_GRID_COLS, COLOR_GRID_ROWS)) {
+  if (!colorMap_.loadFromImage(core::ResourcePaths::map("tilemap.png").string(),
+                               COLOR_GRID_COLS, COLOR_GRID_ROWS)) {
     core::Logger::log("World: failed to load colour tilemap.");
     return false;
   }
@@ -87,7 +84,7 @@ bool World::loadTilesetAssets(SDL_Renderer* renderer) {
   // ---- Ground Tiles (2048x2048 — 32 cols x 32 rows of 64px tiles) --------
   {
     TilesetDef def;
-    def.texturePath = kGroundPath;
+    def.texturePath = core::ResourcePaths::texture("Ground Tiles.png").string();
     def.tileWidth = TILE_SRC;
     def.tileHeight = TILE_SRC;
     def.spacing = 0;
@@ -101,7 +98,7 @@ bool World::loadTilesetAssets(SDL_Renderer* renderer) {
   // ---- Water Tiles (1024x1024 — 16 cols x 16 rows of 64px tiles) ---------
   {
     TilesetDef def;
-    def.texturePath = kWaterPath;
+    def.texturePath = core::ResourcePaths::texture("Water Tiles.png").string();
     def.tileWidth = TILE_SRC;
     def.tileHeight = TILE_SRC;
     def.spacing = 0;
@@ -115,7 +112,7 @@ bool World::loadTilesetAssets(SDL_Renderer* renderer) {
   // ---- Props (2048x2048 — 32 cols x 32 rows of 64px tiles) ---------------
   {
     TilesetDef def;
-    def.texturePath = kPropsPath;
+    def.texturePath = core::ResourcePaths::texture("Props.png").string();
     def.tileWidth = TILE_SRC;
     def.tileHeight = TILE_SRC;
     def.spacing = 0;
@@ -135,10 +132,57 @@ bool World::loadTilesetAssets(SDL_Renderer* renderer) {
 void World::update(float dt, float viewportWidth, float viewportHeight) {
   entityLayer_.update(dt);
 
+  if (player_) {
+    const float dx = player_->desiredMoveX(dt);
+    const float dy = player_->desiredMoveY(dt);
+    tryMove(*player_, dx, dy);
+  }
+
   camera_.setViewport(viewportWidth, viewportHeight);
   if (player_) {
-    camera_.follow(player_->x(), player_->y(), 32.0f, 32.0f);
+    camera_.follow(player_->x(), player_->y(), player_->width(), player_->height());
   }
+}
+
+bool World::tryMove(entities::Player& player, float dx, float dy) {
+  if (dx == 0.0f && dy == 0.0f) {
+    return true;
+  }
+
+  const float startX = player.x();
+  const float startY = player.y();
+  const float w = player.width();
+  const float h = player.height();
+
+  float nextX = startX;
+  float nextY = startY;
+
+  const auto moveAxis = [&](float delta, bool horizontal) {
+    if (delta == 0.0f) return true;
+    const float candidateX = horizontal ? nextX + delta : nextX;
+    const float candidateY = horizontal ? nextY : nextY + delta;
+    if (canOccupy(candidateX, candidateY, w, h)) {
+      if (horizontal) {
+        nextX = candidateX;
+      } else {
+        nextY = candidateY;
+      }
+      return true;
+    }
+    return false;
+  };
+
+  const bool movedX = moveAxis(dx, true);
+  const bool movedY = moveAxis(dy, false);
+
+  const float maxX = std::max(0.0f, mapWidth() - w);
+  const float maxY = std::max(0.0f, mapHeight() - h);
+
+  nextX = std::clamp(nextX, 0.0f, maxX);
+  nextY = std::clamp(nextY, 0.0f, maxY);
+
+  player.commitMove(nextX - startX, nextY - startY);
+  return movedX && movedY;
 }
 
 void World::render(SDL_Renderer* renderer) {
@@ -396,6 +440,66 @@ void World::buildObjectLayer() {
 
   // Town sign near the houses
   objectLayer_.addObject({"town_sign", "trigger", 13.0f * DST, 2.0f * DST, DST, DST});
+}
+
+bool World::loadFromMapFile(SDL_Renderer* renderer, const std::string& path) {
+  MapData mapData;
+  if (!MapLoader::loadFromFile(path, mapData)) {
+    core::Logger::log("World: failed to load map file.");
+    return false;
+  }
+
+  source_ = MapSource::Tileset;
+
+  bool ok = true;
+  if (!mapData.layers.empty()) {
+    const auto loadLayer = [&](const MapLayerData& layer, TileMap& target, Tileset& tileset,
+                               const std::string& fallbackImage) {
+      TilesetDef def;
+      def.texturePath = core::ResourcePaths::texture(fallbackImage).string();
+      def.tileWidth = mapData.tileWidth;
+      def.tileHeight = mapData.tileHeight;
+      if (!tileset.load(renderer, def)) {
+        ok = false;
+      }
+
+      std::vector<int> tiles = layer.tiles;
+      target.init(layer.width, layer.height, std::move(tiles));
+    };
+
+    if (mapData.layers.size() > 0) {
+      loadLayer(mapData.layers[0], groundMap_, groundTileset_, "Ground Tiles.png");
+    }
+    if (mapData.layers.size() > 1) {
+      loadLayer(mapData.layers[1], waterMap_, waterTileset_, "Water Tiles.png");
+    }
+    if (mapData.layers.size() > 2) {
+      loadLayer(mapData.layers[2], propsMap_, propsTileset_, "Props.png");
+    }
+  }
+
+  std::vector<bool> solid = mapData.collision.solid;
+  collision_.init(mapData.collision.width, mapData.collision.height, std::move(solid));
+  objectLayer_ = mapData.objects;
+  camera_.setMapBounds(static_cast<float>(mapData.width * mapData.tileWidth),
+                       static_cast<float>(mapData.height * mapData.tileHeight));
+  return ok;
+}
+
+bool World::canOccupy(float x, float y, float w, float h) const {
+  const float tileW = tileDstSize();
+  const float tileH = tileDstSize();
+  return !collision_.overlaps(SDL_FRect{x, y, w, h}, tileW, tileH);
+}
+
+float World::mapWidth() const {
+  return source_ == MapSource::ColorImage ? COLOR_GRID_COLS * COLOR_TILE_DST
+                                          : MAP_COLS * TILE_SRC * TILE_SCALE;
+}
+
+float World::mapHeight() const {
+  return source_ == MapSource::ColorImage ? COLOR_GRID_ROWS * COLOR_TILE_DST
+                                          : MAP_ROWS * TILE_SRC * TILE_SCALE;
 }
 
 }  // namespace game::world

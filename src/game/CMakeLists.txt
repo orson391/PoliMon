@@ -6,8 +6,11 @@ add_library(game STATIC
     world/CollisionLayer.cpp
     world/ObjectLayer.cpp
     world/EntityLayer.cpp
+    world/MapLoader.cpp
     world/World.cpp
     world/ColorTileMap.cpp
+
+    graphics/TextureManager.cpp
 )
 
 target_include_directories(game PUBLIC

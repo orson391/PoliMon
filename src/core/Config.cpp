@@ -1,5 +1,7 @@
 #include "Config.h"
 
+#include <algorithm>
+
 #include <tinyxml2.h>
 
 #include "Logger.h"
@@ -37,6 +39,15 @@ std::string attrString(tinyxml2::XMLElement* elem, const char* name, const std::
   return value ? std::string(value) : fallback;
 }
 
+int clampIntWithLog(const std::string& field, int value, int minValue, int maxValue) {
+  const int clamped = std::clamp(value, minValue, maxValue);
+  if (clamped != value) {
+    Logger::log("Config XML invalid value for " + field + ": " + std::to_string(value) +
+                " clamped to " + std::to_string(clamped));
+  }
+  return clamped;
+}
+
 }  // namespace
 
 bool Config::loadFromFile(const std::string& path, Config& outConfig) {
@@ -64,6 +75,10 @@ bool Config::loadFromFile(const std::string& path, Config& outConfig) {
   config.target_fps = attrInt(graphicsElem, "target_fps", config.target_fps);
   config.vsync = attrBool(graphicsElem, "vsync", config.vsync);
 
+  config.width = clampIntWithLog("Window.width", config.width, 320, 100000);
+  config.height = clampIntWithLog("Window.height", config.height, 240, 100000);
+  config.target_fps = clampIntWithLog("Graphics.target_fps", config.target_fps, 1, 500);
+
   tinyxml2::XMLElement* uiElem = root->FirstChildElement("UI");
   if (uiElem) {
     int index = 0;
@@ -75,10 +90,14 @@ bool Config::loadFromFile(const std::string& path, Config& outConfig) {
       rect.y = attrFloat(rectElem, "y", 0.0f);
       rect.width = attrFloat(rectElem, "width", 0.0f);
       rect.height = attrFloat(rectElem, "height", 0.0f);
-      rect.r = static_cast<unsigned char>(attrInt(rectElem, "r", 255));
-      rect.g = static_cast<unsigned char>(attrInt(rectElem, "g", 255));
-      rect.b = static_cast<unsigned char>(attrInt(rectElem, "b", 255));
-      rect.a = static_cast<unsigned char>(attrInt(rectElem, "a", 255));
+      rect.r = static_cast<unsigned char>(clampIntWithLog(
+          "UI.Rectangle[" + std::to_string(index) + "].r", attrInt(rectElem, "r", 255), 0, 255));
+      rect.g = static_cast<unsigned char>(clampIntWithLog(
+          "UI.Rectangle[" + std::to_string(index) + "].g", attrInt(rectElem, "g", 255), 0, 255));
+      rect.b = static_cast<unsigned char>(clampIntWithLog(
+          "UI.Rectangle[" + std::to_string(index) + "].b", attrInt(rectElem, "b", 255), 0, 255));
+      rect.a = static_cast<unsigned char>(clampIntWithLog(
+          "UI.Rectangle[" + std::to_string(index) + "].a", attrInt(rectElem, "a", 255), 0, 255));
       rect.filled = attrBool(rectElem, "filled", true);
       rect.normalized = attrBool(rectElem, "normalized", false);
       config.rectangles.push_back(rect);

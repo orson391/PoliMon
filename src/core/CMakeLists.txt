@@ -3,6 +3,7 @@ find_package(tinyxml2 CONFIG REQUIRED)
 add_library(core STATIC
     Logger.cpp
     Config.cpp
+    ResourcePaths.cpp
 )
 
 add_library(xml_reader SHARED
@@ -17,7 +18,7 @@ target_include_directories(xml_reader PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(core PUBLIC tinyxml2::tinyxml2)
+target_link_libraries(core PUBLIC tinyxml2::tinyxml2 SDL3::SDL3)
 target_link_libraries(xml_reader PUBLIC core tinyxml2::tinyxml2)
 
 target_compile_definitions(xml_reader PRIVATE XML_READER_EXPORTS)

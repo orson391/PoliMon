@@ -4,6 +4,8 @@
 
 #include "Logger.h"
 #include "entities/Player.h"
+#include "graphics/TextureManager.h"
+#include "ResourcePaths.h"
 
 namespace game {
 
@@ -14,12 +16,17 @@ GameApp::GameApp() {
 void GameApp::onStart() {
   core::Logger::log("Game started");
 
-  // Load world. Currently using the flat-colour tilemap.png placeholder;
-  // once real tile art is ready, switch to game::world::MapSource::Tileset
-  // — nothing else in this function needs to change.
-  if (!world_.load(renderer(), game::world::MapSource::ColorImage)) {
+  engine::graphics::TextureManager::instance().initialize(renderer());
+
+  if (!world_.load(renderer(), game::world::MapSource::Tileset)) {
     core::Logger::log("Failed to load world.");
   }
+
+  auto& textures = engine::graphics::TextureManager::instance();
+
+  textures.loadTexture("player", core::ResourcePaths::texture("Player.png").string());
+  textures.loadTexture("tileset", core::ResourcePaths::texture("tileset.png").string());
+  textures.loadTexture("objects", core::ResourcePaths::texture("objects.png").string());
 
   // Create Player and load its sprite
   auto player = std::make_unique<entities::Player>();

@@ -52,6 +52,28 @@ int main() {
   assert(!config.fullscreen);
   assert(config.vsync);
 
+  {
+    std::ofstream file(path);
+    file << R"(<Settings>
+  <Window title="Bad Config" width="100" height="120" fullscreen="false" />
+  <Graphics target_fps="9999" vsync="true" />
+  <UI>
+    <Rectangle r="-10" g="999" b="12" a="300" />
+  </UI>
+</Settings>)";
+  }
+
+  const bool invalidLoaded = core::Config::loadFromFile(path.string(), config);
+  assert(invalidLoaded);
+  assert(config.width == 320);
+  assert(config.height == 240);
+  assert(config.target_fps == 500);
+  assert(config.rectangles.size() == 1);
+  assert(config.rectangles[0].r == 0);
+  assert(config.rectangles[0].g == 255);
+  assert(config.rectangles[0].b == 12);
+  assert(config.rectangles[0].a == 255);
+
   std::filesystem::remove(path);
   return 0;
 }

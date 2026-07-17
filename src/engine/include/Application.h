@@ -7,7 +7,6 @@
                           // include, which is fragile (breaks if include order changes).
 
 #include "Config.h"
-#include "xml_reader.h"
 
 struct SDL_Window;
 struct SDL_Renderer;
@@ -57,6 +56,7 @@ class Application {
 
  private:
   bool running_{false};
+  bool initialized_{false};
   SDL_Window* window_{nullptr};
   SDL_Renderer* renderer_{nullptr};
   std::filesystem::file_time_type lastConfigWrite_{};
