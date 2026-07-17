@@ -18,10 +18,7 @@ void GameApp::onStart() {
 
   engine::graphics::TextureManager::instance().initialize(renderer());
 
-  // Load world. Currently using the flat-colour tilemap.png placeholder;
-  // once real tile art is ready, switch to game::world::MapSource::Tileset
-  // — nothing else in this function needs to change.
-  if (!world_.load(renderer(), game::world::MapSource::ColorImage)) {
+  if (!world_.load(renderer(), game::world::MapSource::Tileset)) {
     core::Logger::log("Failed to load world.");
   }
 

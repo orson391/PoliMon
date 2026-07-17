@@ -33,6 +33,9 @@ namespace game::world {
 // ===========================================================================
 bool World::load(SDL_Renderer* renderer, MapSource source) {
   source_ = source;
+  if (source_ == MapSource::Tileset) {
+    return loadFromMapFile(renderer, core::ResourcePaths::map("maps/test.tmj").string());
+  }
   bool ok = true;
 
   if (source_ == MapSource::ColorImage) {
@@ -437,6 +440,50 @@ void World::buildObjectLayer() {
 
   // Town sign near the houses
   objectLayer_.addObject({"town_sign", "trigger", 13.0f * DST, 2.0f * DST, DST, DST});
+}
+
+bool World::loadFromMapFile(SDL_Renderer* renderer, const std::string& path) {
+  MapData mapData;
+  if (!MapLoader::loadFromFile(path, mapData)) {
+    core::Logger::log("World: failed to load map file.");
+    return false;
+  }
+
+  source_ = MapSource::Tileset;
+
+  bool ok = true;
+  if (!mapData.layers.empty()) {
+    const auto loadLayer = [&](const MapLayerData& layer, TileMap& target, Tileset& tileset,
+                               const std::string& fallbackImage) {
+      TilesetDef def;
+      def.texturePath = core::ResourcePaths::texture(fallbackImage).string();
+      def.tileWidth = mapData.tileWidth;
+      def.tileHeight = mapData.tileHeight;
+      if (!tileset.load(renderer, def)) {
+        ok = false;
+      }
+
+      std::vector<int> tiles = layer.tiles;
+      target.init(layer.width, layer.height, std::move(tiles));
+    };
+
+    if (mapData.layers.size() > 0) {
+      loadLayer(mapData.layers[0], groundMap_, groundTileset_, "Ground Tiles.png");
+    }
+    if (mapData.layers.size() > 1) {
+      loadLayer(mapData.layers[1], waterMap_, waterTileset_, "Water Tiles.png");
+    }
+    if (mapData.layers.size() > 2) {
+      loadLayer(mapData.layers[2], propsMap_, propsTileset_, "Props.png");
+    }
+  }
+
+  std::vector<bool> solid = mapData.collision.solid;
+  collision_.init(mapData.collision.width, mapData.collision.height, std::move(solid));
+  objectLayer_ = mapData.objects;
+  camera_.setMapBounds(static_cast<float>(mapData.width * mapData.tileWidth),
+                       static_cast<float>(mapData.height * mapData.tileHeight));
+  return ok;
 }
 
 bool World::canOccupy(float x, float y, float w, float h) const {

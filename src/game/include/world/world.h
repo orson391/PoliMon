@@ -5,6 +5,7 @@
 #include "world/CollisionLayer.h"
 #include "world/ColorTileMap.h"
 #include "world/EntityLayer.h"
+#include "world/MapLoader.h"
 #include "world/ObjectLayer.h"
 #include "world/TileMap.h"
 #include "world/Tileset.h"
@@ -118,6 +119,7 @@ class World {
   void buildWaterMap();
   void buildPropsMap();
   void buildCollisionLayerFromTileset();
+  bool loadFromMapFile(SDL_Renderer* renderer, const std::string& path);
 
   // ---- Shared -----------------------------------------------------------
   void buildObjectLayer();
