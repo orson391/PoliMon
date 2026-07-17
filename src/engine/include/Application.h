@@ -7,7 +7,6 @@
                           // include, which is fragile (breaks if include order changes).
 
 #include "Config.h"
-#include "xml_reader.h"
 
 struct SDL_Window;
 struct SDL_Renderer;

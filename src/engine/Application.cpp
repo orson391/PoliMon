@@ -5,8 +5,8 @@
 #include <filesystem>
 #include <string>
 
-#include "ResourcePaths.h"
 #include "Logger.h"
+#include "ResourcePaths.h"
 
 namespace engine {
 
@@ -14,38 +14,6 @@ namespace {
 
 std::string resolveConfigPath() {
   return core::ResourcePaths::config("settings.xml").string();
-}
-
-bool loadConfigFromXml(const std::string& path, core::Config& outConfig) {
-  XmlReaderConfig xmlConfig{};
-  if (!xml_reader_load_from_file(path.c_str(), &xmlConfig)) {
-    return false;
-  }
-
-  outConfig.title = xmlConfig.window.title;
-  outConfig.width = xmlConfig.window.width;
-  outConfig.height = xmlConfig.window.height;
-  outConfig.fullscreen = xmlConfig.window.fullscreen != 0;
-  outConfig.target_fps = xmlConfig.graphics.target_fps;
-  outConfig.vsync = xmlConfig.graphics.vsync != 0;
-  int numberOfRectangle = xmlConfig.rect_count;
-  for (int i = 0; i < numberOfRectangle; i++) {
-    XmlReaderRect xmlRect = xmlConfig.rects[i];
-    core::RectElement rect;
-    rect.id = xmlRect.id;
-    rect.x = xmlRect.x;
-    rect.y = xmlRect.y;
-    rect.width = xmlRect.width;
-    rect.height = xmlRect.height;
-    rect.r = xmlRect.r;
-    rect.g = xmlRect.g;
-    rect.b = xmlRect.b;
-    rect.a = xmlRect.a;
-    rect.filled = xmlRect.filled == 1;
-    rect.normalized = xmlRect.normalized == 1;
-    outConfig.rectangles.push_back(rect);
-  }
-  return true;
 }
 
 }  // namespace
@@ -136,7 +104,7 @@ bool Application::reloadConfigFromFile(const std::string& path) {
   }
 
   core::Config loaded;
-  if (!loadConfigFromXml(configPath, loaded)) {
+  if (!core::Config::loadFromFile(configPath, loaded)) {
     return false;
   }
 
