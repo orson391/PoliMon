@@ -5,6 +5,7 @@
 #include "Logger.h"
 #include "entities/Player.h"
 #include "graphics/TextureManager.h"
+#include "ResourcePaths.h"
 
 namespace game {
 
@@ -26,9 +27,9 @@ void GameApp::onStart() {
 
   auto& textures = engine::graphics::TextureManager::instance();
 
-  textures.loadTexture("player", "C:\\Projects\\VsCode\\PoliMon\\asset\\Player.png");
-  textures.loadTexture("tileset", "assets/tileset.png");
-  textures.loadTexture("objects", "assets/objects.png");
+  textures.loadTexture("player", core::ResourcePaths::texture("Player.png").string());
+  textures.loadTexture("tileset", core::ResourcePaths::texture("tileset.png").string());
+  textures.loadTexture("objects", core::ResourcePaths::texture("objects.png").string());
 
   // Create Player and load its sprite
   auto player = std::make_unique<entities::Player>();

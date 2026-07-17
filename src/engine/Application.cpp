@@ -2,10 +2,10 @@
 
 #include <SDL3/SDL.h>
 
-#include <algorithm>
 #include <filesystem>
 #include <string>
 
+#include "ResourcePaths.h"
 #include "Logger.h"
 
 namespace engine {
@@ -13,7 +13,7 @@ namespace engine {
 namespace {
 
 std::string resolveConfigPath() {
-  return "C:\\Projects\\VsCode\\PoliMon\\config\\settings.xml";
+  return core::ResourcePaths::config("settings.xml").string();
 }
 
 bool loadConfigFromXml(const std::string& path, core::Config& outConfig) {

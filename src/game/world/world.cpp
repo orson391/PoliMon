@@ -2,16 +2,9 @@
 
 #include <algorithm>
 
+#include "ResourcePaths.h"
 #include "Logger.h"
 #include "entities/Player.h"
-
-// ---------------------------------------------------------------------------
-// Asset paths
-// ---------------------------------------------------------------------------
-static constexpr const char* kGroundPath = "C:\\Projects\\VsCode\\PoliMon\\asset\\Ground Tiles.png";
-static constexpr const char* kWaterPath = "C:\\Projects\\VsCode\\PoliMon\\asset\\Water Tiles.png";
-static constexpr const char* kPropsPath = "C:\\Projects\\VsCode\\PoliMon\\asset\\Props.png";
-static constexpr const char* kColorMapPath = "C:\\Projects\\VsCode\\PoliMon\\asset\\tilemap.png";
 
 // ---------------------------------------------------------------------------
 // Map constants — Tileset mode
@@ -70,7 +63,8 @@ bool World::load(SDL_Renderer* renderer, MapSource source) {
 //   cell by nearest palette colour. No tileset texture is needed.
 // ===========================================================================
 bool World::loadColorMap(SDL_Renderer* /*renderer*/) {
-  if (!colorMap_.loadFromImage(kColorMapPath, COLOR_GRID_COLS, COLOR_GRID_ROWS)) {
+  if (!colorMap_.loadFromImage(core::ResourcePaths::map("tilemap.png").string(),
+                               COLOR_GRID_COLS, COLOR_GRID_ROWS)) {
     core::Logger::log("World: failed to load colour tilemap.");
     return false;
   }
@@ -87,7 +81,7 @@ bool World::loadTilesetAssets(SDL_Renderer* renderer) {
   // ---- Ground Tiles (2048x2048 — 32 cols x 32 rows of 64px tiles) --------
   {
     TilesetDef def;
-    def.texturePath = kGroundPath;
+    def.texturePath = core::ResourcePaths::texture("Ground Tiles.png").string();
     def.tileWidth = TILE_SRC;
     def.tileHeight = TILE_SRC;
     def.spacing = 0;
@@ -101,7 +95,7 @@ bool World::loadTilesetAssets(SDL_Renderer* renderer) {
   // ---- Water Tiles (1024x1024 — 16 cols x 16 rows of 64px tiles) ---------
   {
     TilesetDef def;
-    def.texturePath = kWaterPath;
+    def.texturePath = core::ResourcePaths::texture("Water Tiles.png").string();
     def.tileWidth = TILE_SRC;
     def.tileHeight = TILE_SRC;
     def.spacing = 0;
@@ -115,7 +109,7 @@ bool World::loadTilesetAssets(SDL_Renderer* renderer) {
   // ---- Props (2048x2048 — 32 cols x 32 rows of 64px tiles) ---------------
   {
     TilesetDef def;
-    def.texturePath = kPropsPath;
+    def.texturePath = core::ResourcePaths::texture("Props.png").string();
     def.tileWidth = TILE_SRC;
     def.tileHeight = TILE_SRC;
     def.spacing = 0;

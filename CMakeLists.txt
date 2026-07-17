@@ -9,7 +9,7 @@ find_package(SDL3 CONFIG REQUIRED)
 find_package(SDL3_image CONFIG REQUIRED)
 find_package(TinyXML2 CONFIG REQUIRED)
 
-configure_file(${CMAKE_SOURCE_DIR}/config/settings.xml ${CMAKE_BINARY_DIR}/settings.xml COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/config/settings.xml ${CMAKE_BINARY_DIR}/config/settings.xml COPYONLY)
 file(COPY ${CMAKE_SOURCE_DIR}/asset DESTINATION ${CMAKE_BINARY_DIR})
 
 enable_testing()
