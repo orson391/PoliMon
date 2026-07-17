@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Settings>
-    <Window title="Render architecture" width="800" height="600" fullscreen="false"/>
+    <Window title="PoliMon" width="800" height="600" fullscreen="false"/>
     <Graphics target_fps="60" vsync="true"/>
     <UI>
       <Rectangle x="10" y="20" width="100" height="100" g="0" b="0" />

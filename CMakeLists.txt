@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(SDL3Hello LANGUAGES CXX)
+project(PoliMon LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,6 +16,5 @@ enable_testing()
 add_subdirectory(src/core)
 add_subdirectory(src/engine)
 add_subdirectory(src/game)
-add_subdirectory(src/graphics)
 add_subdirectory(src/main)
 add_subdirectory(tests)

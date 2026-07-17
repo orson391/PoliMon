@@ -20,7 +20,7 @@ struct RectElement {
 };
 
 struct Config {
-  std::string title{"SDL3 Modular App"};
+  std::string title{"PoliMon"};
   int width{800};
   int height{600};
   int target_fps{60};

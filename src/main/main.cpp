@@ -4,7 +4,7 @@
 #include "Logger.h"
 
 int main() {
-  core::Logger::log("Starting modular SDL3 application");
+  core::Logger::log("Starting PoliMon");
 
   game::GameApp app;
   if (!app.initialize()) {

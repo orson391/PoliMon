@@ -17,7 +17,7 @@ class Application {
  public:
   using FrameCallback = std::function<void(float dtSeconds)>;
 
-  Application(const std::string& title = "SDL3 Modular App", int width = 800, int height = 600);
+  Application(const std::string& title = "PoliMon", int width = 800, int height = 600);
   virtual ~Application();
 
   // Application owns raw SDL_Window*/SDL_Renderer* handles with no reference
