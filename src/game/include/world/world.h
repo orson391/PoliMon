@@ -64,6 +64,7 @@ class World {
 
   void update(float dt, float viewportWidth, float viewportHeight);
   void render(SDL_Renderer* renderer);
+  bool tryMove(entities::Player& player, float dx, float dy);
 
   void setPlayer(entities::Player* player) { player_ = player; }
   const Camera& camera() const { return camera_; }
@@ -120,6 +121,7 @@ class World {
 
   // ---- Shared -----------------------------------------------------------
   void buildObjectLayer();
+  bool canOccupy(float x, float y, float w, float h) const;
 };
 
 }  // namespace game::world

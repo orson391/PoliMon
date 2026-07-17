@@ -129,10 +129,50 @@ bool World::loadTilesetAssets(SDL_Renderer* renderer) {
 void World::update(float dt, float viewportWidth, float viewportHeight) {
   entityLayer_.update(dt);
 
+  if (player_) {
+    const float dx = player_->desiredMoveX(dt);
+    const float dy = player_->desiredMoveY(dt);
+    tryMove(*player_, dx, dy);
+  }
+
   camera_.setViewport(viewportWidth, viewportHeight);
   if (player_) {
-    camera_.follow(player_->x(), player_->y(), 32.0f, 32.0f);
+    camera_.follow(player_->x(), player_->y(), player_->width(), player_->height());
   }
+}
+
+bool World::tryMove(entities::Player& player, float dx, float dy) {
+  if (dx == 0.0f && dy == 0.0f) {
+    return true;
+  }
+
+  const float startX = player.x();
+  const float startY = player.y();
+  const float w = player.width();
+  const float h = player.height();
+
+  float nextX = startX;
+  float nextY = startY;
+
+  const auto moveAxis = [&](float delta, bool horizontal) {
+    if (delta == 0.0f) return true;
+    const float candidateX = horizontal ? nextX + delta : nextX;
+    const float candidateY = horizontal ? nextY : nextY + delta;
+    if (canOccupy(candidateX, candidateY, w, h)) {
+      if (horizontal) {
+        nextX = candidateX;
+      } else {
+        nextY = candidateY;
+      }
+      return true;
+    }
+    return false;
+  };
+
+  const bool movedX = moveAxis(dx, true);
+  const bool movedY = moveAxis(dy, false);
+  player.commitMove(nextX - startX, nextY - startY);
+  return movedX && movedY;
 }
 
 void World::render(SDL_Renderer* renderer) {
@@ -390,6 +430,12 @@ void World::buildObjectLayer() {
 
   // Town sign near the houses
   objectLayer_.addObject({"town_sign", "trigger", 13.0f * DST, 2.0f * DST, DST, DST});
+}
+
+bool World::canOccupy(float x, float y, float w, float h) const {
+  const float tileW = tileDstSize();
+  const float tileH = tileDstSize();
+  return !collision_.overlaps(SDL_FRect{x, y, w, h}, tileW, tileH);
 }
 
 }  // namespace game::world
