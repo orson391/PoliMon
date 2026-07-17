@@ -171,6 +171,13 @@ bool World::tryMove(entities::Player& player, float dx, float dy) {
 
   const bool movedX = moveAxis(dx, true);
   const bool movedY = moveAxis(dy, false);
+
+  const float maxX = std::max(0.0f, mapWidth() - w);
+  const float maxY = std::max(0.0f, mapHeight() - h);
+
+  nextX = std::clamp(nextX, 0.0f, maxX);
+  nextY = std::clamp(nextY, 0.0f, maxY);
+
   player.commitMove(nextX - startX, nextY - startY);
   return movedX && movedY;
 }
@@ -436,6 +443,16 @@ bool World::canOccupy(float x, float y, float w, float h) const {
   const float tileW = tileDstSize();
   const float tileH = tileDstSize();
   return !collision_.overlaps(SDL_FRect{x, y, w, h}, tileW, tileH);
+}
+
+float World::mapWidth() const {
+  return source_ == MapSource::ColorImage ? COLOR_GRID_COLS * COLOR_TILE_DST
+                                          : MAP_COLS * TILE_SRC * TILE_SCALE;
+}
+
+float World::mapHeight() const {
+  return source_ == MapSource::ColorImage ? COLOR_GRID_ROWS * COLOR_TILE_DST
+                                          : MAP_ROWS * TILE_SRC * TILE_SCALE;
 }
 
 }  // namespace game::world

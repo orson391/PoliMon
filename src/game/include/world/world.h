@@ -122,6 +122,8 @@ class World {
   // ---- Shared -----------------------------------------------------------
   void buildObjectLayer();
   bool canOccupy(float x, float y, float w, float h) const;
+  float mapWidth() const;
+  float mapHeight() const;
 };
 
 }  // namespace game::world
